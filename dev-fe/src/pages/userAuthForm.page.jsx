@@ -9,6 +9,7 @@ import axios from "axios";
 import { storeInSession } from "../common/session";
 import { UserContext } from "../App";
 import { authWithGoogle } from "../common/firebase";
+import { TypeAnimation } from 'react-type-animation'; //Terminal effects for text
 
 
 const UserAuthForm = ({ type }) => {
@@ -103,9 +104,33 @@ const UserAuthForm = ({ type }) => {
         <section className="h-cover flex items-center justify-center">
           <Toaster />
           <form id="formElement" className="w-[80%] max-w-[400px]">
+
             <h1 className="text-4xl font-monospace capitalize text-center mb-24">
-              {type == "sign-in" ? "Welcome back" : "Join us today"}
+              {type == "sign-in" ?
+                <TypeAnimation
+                  sequence={[
+                    'Welcome back',
+                    1000
+                  ]}
+                  wrapper="span"
+                  speed={25}
+                  className="text-4xl"
+                  repeat={Infinity}
+                />
+                :
+                <TypeAnimation
+                  sequence={[
+                    'Join us today',
+                    1000
+                  ]}
+                  wrapper="span"
+                  speed={25}
+                  className="text-4xl"
+                  repeat={Infinity}
+                />
+              }
             </h1>
+
             {
               type != "sign-in" ?
                 <InputBox
