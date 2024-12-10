@@ -139,9 +139,7 @@ server.post("/google-auth", async (req, res) => {
   getAuth()
     .verifyIdToken(access_token)
     .then(async (decodedUser) => {
-      let { email, name, picture } = decodedUser;
-
-      picture = picture.replace("s96-c", "s384-c");
+      let { email, name } = decodedUser;
 
       let user = await User.findOne({ "personal_info.email": email }).select("personal_info.fullname personal_info.username personal_info.profile_img google_auth").then((u) => {
         return u || null
