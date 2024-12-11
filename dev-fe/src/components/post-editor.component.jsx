@@ -10,7 +10,7 @@ import { tools } from "./tools.component";
 
 const PostEditor = () => {
 
-  let { post, post: { title, banner, content, tags, des }, setPost, textEditor, setTextEditor } = useContext(EditorContext)
+  let { post, post: { title, banner, content, tags, des }, setPost, textEditor, setTextEditor, setEditorState } = useContext(EditorContext)
 
   //useEffect
   useEffect(() => {
@@ -36,6 +36,7 @@ const PostEditor = () => {
         //notifiers
         toast.dismiss(loadingBannerToast)
         toast.success('Successfully Uploaded!');
+        setPost({ ...post, banner: reader.result })
       };
       reader.readAsDataURL(img);
     }
@@ -57,6 +58,31 @@ const PostEditor = () => {
     setPost({ ...post, title: input.value })
   }
 
+  const handlePublishEvent = () => {
+    if (!banner.length) {
+      return toast.error("Upload a post banner to publish it.")
+    }
+
+    if (!title.length) {
+      return toast.error("Set a post title to publish it.")
+    }
+
+    if (textEditor.isReady) {
+      textEditor.save().then(data => {
+        if (data.blocks.length) {
+          setPost({ ...post, content: data });
+          setEditorState("publish")
+        } else {
+          return toast.error("Write something in post to publish it.")
+        }
+      })
+        .catch((err) => {
+          return toast.error("An error occured...")
+        })
+    }
+  }
+
+
   return (
     <>
       <nav className="navbar">
@@ -68,7 +94,8 @@ const PostEditor = () => {
         </p>
 
         <div className="flex gap-4 ml-auto">
-          <button className="btn-dark py-2">
+          <button className="btn-dark py-2"
+            onClick={handlePublishEvent}>
             Publish
           </button>
           <button className="btn-light py-2">
