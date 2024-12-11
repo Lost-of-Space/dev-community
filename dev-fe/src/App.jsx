@@ -1,4 +1,7 @@
-/* pt2( 31:06 ) */
+/* pt2( 1:52:06 ) 
+Todo:
+1. Uploading with image encoding and decoding
+*/
 
 import { lookInSession } from "./common/session";
 import { createContext, useEffect, useState } from "react";
