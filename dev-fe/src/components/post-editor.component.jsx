@@ -16,7 +16,7 @@ const PostEditor = () => {
   useEffect(() => {
     setTextEditor(new EditorJS({
       holder: "textEditor",
-      data: '',
+      data: content,
       tools: tools,
       placeholder: "Type here something..."
     }))
@@ -41,6 +41,13 @@ const PostEditor = () => {
       reader.readAsDataURL(img);
     }
   };
+
+  //set default banner
+  const handleBannerError = (e) => {
+    let img = e.target;
+
+    img.src = defaultBanner;
+  }
 
   //Text editor
   const handleTitleKeyDown = (e) => {
@@ -110,7 +117,8 @@ const PostEditor = () => {
           <div className="mx-auto max-w-[900px] w-full">
             <div className="relative aspect-video hover:opacity-70 bg-white border-4 border-grey">
               <label htmlFor="uploadBanner">
-                <img src={bannerImg} alt="banner image"
+                <img src={banner} alt="banner image"
+                  onError={handleBannerError}
                   className="z-20" />
                 <input
                   id="uploadBanner"
@@ -123,6 +131,7 @@ const PostEditor = () => {
             </div>
 
             <textarea
+              defaultValue={title}
               placeholder="Post Title"
               className="text-4xl font-medium w-full h-20 outline-none resize-none mt-10 leading-tight placeholder:opacity-40"
               onKeyDown={handleTitleKeyDown}
