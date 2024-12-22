@@ -87,9 +87,9 @@ const userSchema = mongoose.Schema(
             type: Boolean,
             default: false,
         },
-        blogs: {
+        posts: {
             type: [Schema.Types.ObjectId],
-            ref: "blogs",
+            ref: "posts",
             default: [],
         },
     },

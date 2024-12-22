@@ -11,6 +11,8 @@ import { getAuth } from "firebase-admin/auth"
 
 //schema
 import User from './Schema/User.js';
+import Post from './Schema/Post.js';
+
 
 const server = express();
 let PORT = 3000;
@@ -29,6 +31,24 @@ mongoose.connect(process.env.DB_LOCATION, {
   autoIndex: true
 })
 
+
+const verifyJWT = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (token == null) {
+    return res.status(401).json({ error: "No access token." })
+  }
+
+  jwt.verify(token, process.env.SECRET_ACCESS_KEY, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: "Access token is invalid." })
+    }
+
+    req.user = user.id
+    next()
+  })
+}
 
 const formatDataToSend = (user) => {
 
@@ -175,6 +195,63 @@ server.post("/google-auth", async (req, res) => {
     })
     .catch(err => {
       return res.status(500).json({ "error": "Failed to authenticate with google" })
+    })
+
+})
+
+
+server.post('/create-post', verifyJWT, (req, res) => {
+
+  let authorId = req.user;
+
+  let { title, des, banner, tags, content, draft } = req.body;
+
+  if (!title.length) {
+    return res.status(403).json({ error: "You must provide a title." });
+  }
+
+  if (!draft) {
+    if (!des.length || des.length > 200) {
+      return res.status(403).json({ error: "You must provide a description under 200 characters." });
+    }
+
+    // if (!banner.length) {
+    //   return res.status(403).json({ error: "You must provide a banner." });
+    // }
+
+    if (!content.blocks.length) {
+      return res.status(403).json({ error: "There must be some content." });
+    }
+
+    if (!tags.length || tags.length > 10) {
+      return res.status(403).json({ error: "There must be at least one tag, maximum 10." });
+    }
+  }
+
+  tags = tags.map(tag => tag.toLowerCase());
+
+  let post_id = title.replace(/[^a-zA-Z0-9]/g, ' ').replace(/\s+/g, "-").trim() + "-" + nanoid();
+
+  let post = new Post({
+    title, des, banner, content, tags, author: authorId, post_id, draft: Boolean(draft)
+  })
+
+  post.save().then(post => {
+
+    // test if post draft == true or false, and updating total posts count
+    let incrementVal = draft ? 0 : 1;
+    User.findOneAndUpdate({ _id: authorId }, { $inc: { "account_info.total_posts": incrementVal }, $push: { "posts": post._id } })
+
+      .then(user => {
+        return res.status(200).json({ id: post.post_id })
+      })
+
+      .catch(err => {
+        return res.status(500).json({ error: "Failed tp update total posts number" })
+      })
+  })
+    .catch(err => {
+      return res.status(500).json({ error: err.message })
     })
 
 })

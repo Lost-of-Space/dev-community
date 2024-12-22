@@ -1,6 +1,6 @@
-/* pt2( 3:48:36 ) 
+/* pt3( 0 ) 
 Todo:
-1. Uploading with image encoding and decoding
+1. Use Cloudinary to publish images cause of base64 issues.
 */
 
 import { lookInSession } from "./common/session";

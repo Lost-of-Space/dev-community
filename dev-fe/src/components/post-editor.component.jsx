@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../imgs/logo.png";
 import AnimationWrapper from "../common/page-animation";
 import defaultBanner from "../imgs/default_banner.png"
@@ -7,19 +7,27 @@ import { Toaster, toast } from "react-hot-toast";
 import { EditorContext } from "../pages/editor.pages";
 import EditorJS from "@editorjs/editorjs"; //lib for text editor
 import { tools } from "./tools.component";
+import axios from "axios";
+import { UserContext } from "../App";
 
 const PostEditor = () => {
 
   let { post, post: { title, banner, content, tags, des }, setPost, textEditor, setTextEditor, setEditorState } = useContext(EditorContext)
 
+  let { userAuth: { access_token } } = useContext(UserContext);
+
+  let navigate = useNavigate();
+
   //useEffect
   useEffect(() => {
-    setTextEditor(new EditorJS({
-      holder: "textEditor",
-      data: content,
-      tools: tools,
-      placeholder: "Type here something..."
-    }))
+    if (!textEditor.isReady) {
+      setTextEditor(new EditorJS({
+        holder: "textEditor",
+        data: content,
+        tools: tools,
+        placeholder: "Type here something..."
+      }))
+    }
   }, [])
 
   const [bannerImg, setBannerImg] = useState(defaultBanner);
@@ -43,11 +51,11 @@ const PostEditor = () => {
   };
 
   //set default banner
-  const handleBannerError = (e) => {
-    let img = e.target;
+  // const handleBannerError = (e) => {
+  //   let img = e.target;
 
-    img.src = defaultBanner;
-  }
+  //   img.src = defaultBanner;
+  // }
 
   //Text editor
   const handleTitleKeyDown = (e) => {
@@ -66,9 +74,9 @@ const PostEditor = () => {
   }
 
   const handlePublishEvent = () => {
-    if (!banner.length) {
-      return toast.error("Upload a post banner to publish it.")
-    }
+    // if (!banner.length) {
+    //   return toast.error("Upload a post banner to publish it.")
+    // }
 
     if (!title.length) {
       return toast.error("Set a post title to publish it.")
@@ -89,6 +97,50 @@ const PostEditor = () => {
     }
   }
 
+  const handleSaveDraft = (e) => {
+    if (e.target.className.includes("disable")) {
+      return;
+    }
+
+    if (!title.length) {
+      return toast.error("Draft must have a title.")
+    }
+
+    let publishingToast = toast.loading("Publishing...")
+
+    e.target.classList.add('disable');
+
+    if (textEditor.isReady) {
+      textEditor.save().then(content => {
+        let postObj = {
+          title, banner, des, content, tags, draft: true
+        }
+        //sends access token to confirm authorization
+        axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/create-post", postObj, {
+          headers: {
+            'Authorization': `Bearer ${access_token}`
+          }
+        })
+          .then(() => {
+            e.target.classList.remove('disable');
+
+            toast.dismiss(publishingToast);
+            toast.success("Saved");
+
+            setTimeout(() => {
+              navigate("/")
+            }, 500);
+
+          })
+          .catch(({ response }) => {
+            e.target.classList.remove('disable');
+
+            toast.dismiss(publishingToast);
+            return toast.error("An error occured " + response.data.error);
+          })
+      })
+    }
+  }
 
   return (
     <>
@@ -105,7 +157,7 @@ const PostEditor = () => {
             onClick={handlePublishEvent}>
             Publish
           </button>
-          <button className="btn-light py-2">
+          <button className="btn-light py-2" onClick={handleSaveDraft}>
             Save Draft
           </button>
         </div>
@@ -117,8 +169,8 @@ const PostEditor = () => {
           <div className="mx-auto max-w-[900px] w-full">
             <div className="relative aspect-video hover:opacity-70 bg-white border-4 border-grey">
               <label htmlFor="uploadBanner">
-                <img src={banner} alt="banner image"
-                  onError={handleBannerError}
+                <img src={banner ? banner : defaultBanner} alt="banner image"
+                  // onError={handleBannerError}
                   className="z-20" />
                 <input
                   id="uploadBanner"

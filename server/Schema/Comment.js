@@ -1,16 +1,16 @@
 import mongoose, { Schema } from "mongoose";
 
 const commentSchema = mongoose.Schema({
-    
-    blog_id: {
+
+    post_id: {
         type: Schema.Types.ObjectId,
         required: true,
-        ref: 'blogs'
+        ref: 'posts'
     },
-    blog_author: {
+    post_author: {
         type: Schema.Types.ObjectId,
         required: true,
-        ref: 'blogs',
+        ref: 'posts',
     },
     comment: {
         type: String,
@@ -34,10 +34,10 @@ const commentSchema = mongoose.Schema({
     }
 
 },
-{
-    timestamps: {
-        createdAt: 'commentedAt'
-    }
-})
+    {
+        timestamps: {
+            createdAt: 'commentedAt'
+        }
+    })
 
 export default mongoose.model("comments", commentSchema)

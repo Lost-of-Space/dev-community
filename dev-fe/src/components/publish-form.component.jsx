@@ -3,13 +3,21 @@ import AnimationWrapper from "../common/page-animation";
 import { useContext } from "react";
 import { EditorContext } from "../pages/editor.pages";
 import Tag from "./tags.component";
+import axios from "axios";
+import { UserContext } from "../App";
+import { useNavigate } from "react-router-dom";
 
 const PublishForm = () => {
 
   let characterLimit = 200;
   let tagLimit = 10;
 
-  let { post, post: { banner, title, tags, des }, setEditorState, setPost } = useContext(EditorContext);
+  let { post, post: { banner, title, tags, des, content }, setEditorState, setPost } = useContext(EditorContext);
+
+  let { userAuth: { access_token } } = useContext(UserContext);
+
+  let navigate = useNavigate();
+
 
   const handleCloseEvent = () => {
     setEditorState("editor")
@@ -51,6 +59,59 @@ const PublishForm = () => {
       }
       e.target.value = "";
     }
+  }
+
+  const publishPost = (e) => {
+
+    if (e.target.className.includes("disable")) {
+      return;
+    }
+
+    if (!title.length) {
+      return toast.error("Post must have a title.")
+    }
+
+    if (!des.length || des.length > characterLimit) {
+      return toast.error("Post must have a description.")
+    }
+
+    if (!tags.length) {
+      return toast.error("Post must have at least 1 tag.")
+    }
+
+    let publishingToast = toast.loading("Publishing...")
+
+    e.target.classList.add('disable');
+
+
+    let postObj = {
+      title, banner, des, content, tags, draft: false
+    }
+
+    //sends access token to confirm authorization
+    axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/create-post", postObj, {
+      headers: {
+        'Authorization': `Bearer ${access_token}`
+      }
+    })
+      .then(() => {
+        e.target.classList.remove('disable');
+
+        toast.dismiss(publishingToast);
+        toast.success("Published");
+
+        setTimeout(() => {
+          navigate("/")
+        }, 500);
+
+      })
+      .catch(({ response }) => {
+        e.target.classList.remove('disable');
+
+        toast.dismiss(publishingToast);
+        return toast.error("An error occured " + response.data.error);
+      })
+
   }
 
   return (
@@ -105,7 +166,9 @@ const PublishForm = () => {
           </div>
           <p className="mt-1 text-dark-grey text-sm text-right">{tags.length}/{tagLimit}</p>
 
-          <button className="btn-dark px-8">Publish</button>
+          <button className="btn-dark px-8"
+            onClick={publishPost}
+          >Publish</button>
         </div>
 
       </section>
