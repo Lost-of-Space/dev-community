@@ -1,6 +1,5 @@
 /* pt3( 0 ) 
 Todo:
-1. Use Cloudinary to publish images cause of base64 issues.
 */
 
 import { lookInSession } from "./common/session";

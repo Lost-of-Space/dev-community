@@ -9,6 +9,7 @@ import EditorJS from "@editorjs/editorjs"; //lib for text editor
 import { tools } from "./tools.component";
 import axios from "axios";
 import { UserContext } from "../App";
+import useCloudinaryUpload from "../common/cloudinary";
 
 const PostEditor = () => {
 
@@ -20,33 +21,37 @@ const PostEditor = () => {
 
   //useEffect
   useEffect(() => {
-    if (!textEditor.isReady) {
-      setTextEditor(new EditorJS({
-        holder: "textEditor",
-        data: content,
-        tools: tools,
-        placeholder: "Type here something..."
-      }))
-    }
+    //  if (!textEditor.isReady) {
+    setTextEditor(new EditorJS({
+      holder: "textEditor",
+      data: content,
+      tools: tools,
+      placeholder: "Type here something..."
+    }))
+    //   }
   }, [])
 
   const [bannerImg, setBannerImg] = useState(defaultBanner);
+  const { uploading, uploadToCloudinary } = useCloudinaryUpload();
 
-  const handleBannerUpload = (e) => {
-    let img = e.target.files[0];
+  const handleBannerUpload = async (e) => {
+    const img = e.target.files[0]; // Отримуємо обране зображення
     if (img) {
+      try {
+        let loadingToast = toast.loading("Uploading...");
+        const url = await uploadToCloudinary(img);
 
-      let loadingBannerToast = toast.loading("Uploading...")
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        setBannerImg(reader.result); //Banner img updating
-        //notifiers
-        toast.dismiss(loadingBannerToast)
-        toast.success('Successfully Uploaded!');
-        setPost({ ...post, banner: reader.result })
-      };
-      reader.readAsDataURL(img);
+        if (url) {
+          //updating banner
+          setBannerImg(url);
+          setPost({ ...post, banner: url });
+          toast.dismiss(loadingToast);
+          toast.success("Successfully Uploaded!");
+        }
+        toast.dismiss(loadingToast);
+      } catch (error) {
+        toast.error(`Error: ${error.message}`);
+      }
     }
   };
 
@@ -74,9 +79,9 @@ const PostEditor = () => {
   }
 
   const handlePublishEvent = () => {
-    // if (!banner.length) {
-    //   return toast.error("Upload a post banner to publish it.")
-    // }
+    if (!banner.length) {
+      return toast.error("Upload a post banner to publish it.")
+    }
 
     if (!title.length) {
       return toast.error("Set a post title to publish it.")

@@ -215,9 +215,9 @@ server.post('/create-post', verifyJWT, (req, res) => {
       return res.status(403).json({ error: "You must provide a description under 200 characters." });
     }
 
-    // if (!banner.length) {
-    //   return res.status(403).json({ error: "You must provide a banner." });
-    // }
+    if (!banner.length) {
+      return res.status(403).json({ error: "You must provide a banner." });
+    }
 
     if (!content.blocks.length) {
       return res.status(403).json({ error: "There must be some content." });

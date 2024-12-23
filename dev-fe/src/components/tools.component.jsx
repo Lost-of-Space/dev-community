@@ -30,45 +30,46 @@ const uploadImageByURL = (e) => {
 
 
 // Uploading as file
-const MAX_FILE_SIZE_MB = 2;
-const uploadImage = (file) => {
+const MAX_FILE_SIZE_MB = 4;
+
+const uploadImageByFile = (file) => {
   return new Promise((resolve, reject) => {
-    // Checking file size
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      toast.error(`File size exceeds ${MAX_FILE_SIZE_MB} MB`);
       reject(new Error(`File size exceeds ${MAX_FILE_SIZE_MB} MB`));
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      resolve(reader.result);
-    };
-    reader.onerror = (error) => {
-      toast.error('Oops! An error occurred while reading..');
-      reject(error);
-    };
-    reader.readAsDataURL(file); // Reading as base64
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET); // preset name
+    formData.append('cloud_name', import.meta.env.VITE_CLOUDINARY_CLOUD_NAME); // cloudinary username
+
+    fetch(import.meta.env.VITE_CLOUDINARY_URL, {
+      method: 'POST',
+      body: formData
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.secure_url) {
+          const optimizedUrl = `${data.secure_url}?c_fill&auto=webp&quality=auto`;
+          toast.success('Uploaded');
+          resolve({
+            success: 1,
+            file: { url: optimizedUrl }
+          });
+        } else {
+          toast.error('Image upload failed!');
+          reject(new Error('Image upload failed!'));
+        }
+      })
+      .catch((error) => {
+        toast.error('Error uploading image');
+        reject(error);
+      });
   });
 };
 
-const uploadImageByFile = (file) => {
-  return uploadImage(file)
-    .then((base64) => {
-      toast.success('Successfully Uploaded!');
-      return {
-        success: 1,
-        file: { url: base64 }, // Saves as base64
-      };
-    })
-
-    .catch((error) => {
-      toast.error('Max File size is 4MB!');
-      return {
-        success: 0,
-        message: error.message,
-      };
-    });
-};
 
 // Tools config
 export const tools = {

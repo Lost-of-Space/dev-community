@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@cloudinary/react": "^1.13.1",
+    "@cloudinary/url-gen": "^1.21.0",
     "@editorjs/code": "2.8.0",
     "@editorjs/editorjs": "2.27.2",
     "@editorjs/embed": "2.5.3",
