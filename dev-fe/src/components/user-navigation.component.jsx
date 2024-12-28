@@ -26,8 +26,7 @@ const UserNavigationPanel = () => {
         <Link to={`/user/${username}`} className="link py-4">
           Profile
         </Link>
-        {/* BLOGS WILL BE REPLACED! */}
-        <Link to="/dashboard/blogs" className="link py-4">
+        <Link to="/dashboard/posts" className="link py-4">
           Dashboard
         </Link>
         <Link to="/settings/edit-profile" className="link py-4">

@@ -6,10 +6,10 @@ const notificationSchema = mongoose.Schema({
         enum: ["like", "comment", "reply"],
         required: true
     },
-    blog: {
+    post: {
         type: Schema.Types.ObjectId,
         required: true,
-        ref: 'blogs'
+        ref: 'posts'
     },
     notification_for: {
         type: Schema.Types.ObjectId,
@@ -28,8 +28,8 @@ const notificationSchema = mongoose.Schema({
     reply: {
         type: Schema.Types.ObjectId,
         ref: 'comments'
-    }, 
-    replied_on_comment:{
+    },
+    replied_on_comment: {
         type: Schema.Types.ObjectId,
         ref: 'comments'
     },
@@ -38,9 +38,9 @@ const notificationSchema = mongoose.Schema({
         default: false
     }
 },
-{
-    timestamps: true
-}
+    {
+        timestamps: true
+    }
 )
 
 export default mongoose.model("notification", notificationSchema)

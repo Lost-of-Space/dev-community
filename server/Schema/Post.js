@@ -1,8 +1,8 @@
 import mongoose, { Schema } from "mongoose";
 
-const blogSchema = mongoose.Schema({
+const postSchema = mongoose.Schema({
 
-    blog_id: {
+    post_id: {
         type: String,
         required: true,
         unique: true,
@@ -68,4 +68,4 @@ const blogSchema = mongoose.Schema({
 
     })
 
-export default mongoose.model("blogs", blogSchema);
+export default mongoose.model("posts", postSchema);

@@ -11,6 +11,8 @@ import { getAuth } from "firebase-admin/auth"
 
 //schema
 import User from './Schema/User.js';
+import Post from './Schema/Post.js';
+
 
 const server = express();
 let PORT = 3000;
@@ -29,6 +31,24 @@ mongoose.connect(process.env.DB_LOCATION, {
   autoIndex: true
 })
 
+
+const verifyJWT = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (token == null) {
+    return res.status(401).json({ error: "No access token." })
+  }
+
+  jwt.verify(token, process.env.SECRET_ACCESS_KEY, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: "Access token is invalid." })
+    }
+
+    req.user = user.id
+    next()
+  })
+}
 
 const formatDataToSend = (user) => {
 
@@ -107,7 +127,7 @@ server.post("/signin", (req, res) => {
         return res.status(403).json({ "error": "Invalid Credentials." }) //Email not found
       }
 
-      if (!user.google_auth) {
+      if (!user.provider_auth) {
         bcrypt.compare(password, user.personal_info.password, (err, result) => {
           if (err) {
             return res.status(403).json({ "error": "Error occured while login please try again" })
@@ -132,51 +152,131 @@ server.post("/signin", (req, res) => {
     })
 })
 
+
 //Google auth
 server.post("/google-auth", async (req, res) => {
-  let { access_token } = req.body
+  let { access_token } = req.body;
 
-  getAuth()
-    .verifyIdToken(access_token)
-    .then(async (decodedUser) => {
-      let { email, name, picture } = decodedUser;
+  try {
+    const decodedUser = await getAuth().verifyIdToken(access_token);
+    const { email, name } = decodedUser;
 
-      picture = picture.replace("s96-c", "s384-c");
+    const existingUser = await User.findOne({ "personal_info.email": email });
 
-      let user = await User.findOne({ "personal_info.email": email }).select("personal_info.fullname personal_info.username personal_info.profile_img google_auth").then((u) => {
-        return u || null
+    if (existingUser) {
+      if (!existingUser.provider_auth) {
+        return res.status(403).json({
+          error: "This email is already used without Google. login with password or Github."
+        });
+      }
+
+      return res.status(200).json(formatDataToSend(existingUser));
+    }
+
+    const username = await generateUsername(email);
+
+    const newUser = new User({
+      personal_info: { fullname: name, email, username },
+      provider_auth: true
+    });
+
+    const savedUser = await newUser.save();
+    return res.status(200).json(formatDataToSend(savedUser));
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Failed to authenticate with Google." });
+  }
+});
+
+
+//Github auth
+server.post("/github-auth", async (req, res) => {
+  let { access_token } = req.body;
+
+  try {
+    const decodedUser = await getAuth().verifyIdToken(access_token);
+    const { email, name } = decodedUser;
+
+    const existingUser = await User.findOne({ "personal_info.email": email });
+
+    if (existingUser) {
+      if (!existingUser.provider_auth) {
+        return res.status(403).json({
+          error: "This email is already used without Github. login with password or Google."
+        });
+      }
+
+      return res.status(200).json(formatDataToSend(existingUser));
+    }
+
+    const username = await generateUsername(email);
+
+    const newUser = new User({
+      personal_info: { fullname: name, email, username },
+      provider_auth: true
+    });
+
+    const savedUser = await newUser.save();
+    return res.status(200).json(formatDataToSend(savedUser));
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Failed to authenticate with Github." });
+  }
+});
+
+
+server.post('/create-post', verifyJWT, (req, res) => {
+
+  let authorId = req.user;
+
+  let { title, des, banner, tags, content, draft } = req.body;
+
+  if (!title.length) {
+    return res.status(403).json({ error: "You must provide a title." });
+  }
+
+  if (!draft) {
+    if (!des.length || des.length > 200) {
+      return res.status(403).json({ error: "You must provide a description under 200 characters." });
+    }
+
+    if (!banner.length) {
+      return res.status(403).json({ error: "You must provide a banner." });
+    }
+
+    if (!content.blocks.length) {
+      return res.status(403).json({ error: "There must be some content." });
+    }
+
+    if (!tags.length || tags.length > 10) {
+      return res.status(403).json({ error: "There must be at least one tag, maximum 10." });
+    }
+  }
+
+  tags = tags.map(tag => tag.toLowerCase());
+
+  let post_id = title.replace(/[^a-zA-Z0-9]/g, ' ').replace(/\s+/g, "-").trim() + "-" + nanoid();
+
+  let post = new Post({
+    title, des, banner, content, tags, author: authorId, post_id, draft: Boolean(draft)
+  })
+
+  post.save().then(post => {
+
+    // test if post draft == true or false, and updating total posts count
+    let incrementVal = draft ? 0 : 1;
+    User.findOneAndUpdate({ _id: authorId }, { $inc: { "account_info.total_posts": incrementVal }, $push: { "posts": post._id } })
+
+      .then(user => {
+        return res.status(200).json({ id: post.post_id })
       })
 
-        .catch(err => {
-          return res.status(500).json({ "error": err.message })
-        })
-
-      if (user) { //login
-        if (!user.google_auth) {
-          return res.status(403).json({ "error": "This email is already used without Google. Please log in with password to access the account." })
-        }
-      }
-      else {//sign up
-        let username = await generateUsername(email);
-
-        user = new User({
-          personal_info: { fullname: name, email, username },
-          google_auth: true
-        })
-
-        await user.save().then((u) => {
-          user = u;
-        })
-          .catch(err => {
-            return res.status(500).json({ "error": err.message })
-          })
-      }
-
-      return res.status(200).json(formatDataToSend(user))
-
-    })
+      .catch(err => {
+        return res.status(500).json({ error: "Failed tp update total posts number" })
+      })
+  })
     .catch(err => {
-      return res.status(500).json({ "error": "Failed to authenticate with google" })
+      return res.status(500).json({ error: err.message })
     })
 
 })

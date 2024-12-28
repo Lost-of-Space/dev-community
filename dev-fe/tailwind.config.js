@@ -11,7 +11,9 @@ export default {
             'red': '#FF4E4E',
             'transparent': 'transparent',
             'twitter': '#1DA1F2',
-            'purple': '#8B46FF'
+            'purple': '#8B46FF',
+            'royalblue': '#4070f4',
+            'cornflowerblue': '#696CFE'
         },
 
         fontSize: {

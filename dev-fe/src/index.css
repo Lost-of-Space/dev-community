@@ -9,7 +9,7 @@
 
 @layer components {
     * {
-        @apply m-0 p-0 box-border text-base outline-purple/30 duration-100;
+        @apply m-0 p-0 box-border text-base outline-black/30 duration-100;
     }
 
     html {
@@ -57,7 +57,7 @@
     }
 
     .input-box {
-        @apply w-[100%] rounded-md p-4 bg-grey pl-12 border border-grey focus:bg-transparent placeholder:text-black;
+        @apply w-[100%] rounded-md p-4 bg-grey pl-12 border border-grey focus:bg-transparent placeholder:text-black placeholder:opacity-60;
     }
 
     input:disabled,
@@ -105,7 +105,7 @@
 
     #textEditor *,
     .blog-page-content * {
-        @apply font-gelasio text-xl leading-10 md:text-2xl;
+        @apply font-monospace text-xl leading-10 md:text-2xl;
     }
 
     #textEditor a,

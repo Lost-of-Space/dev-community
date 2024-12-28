@@ -1,20 +1,18 @@
-import { useContext, useRef } from "react";
+import { useContext } from "react";
 import AnimationWrapper from "../common/page-animation";
 import InputBox from "../components/input.component";
-import googleIcon from "../imgs/google.png";
-//import facebookIcon from "../imgs/facebook.png";
+import googleIcon from "../imgs/google.svg";
+import githubIcon from "../imgs/github.svg";
 import { Link, Navigate } from "react-router-dom";
-import { Toaster, toast } from "react-hot-toast"; //notification library
+import { Toaster, toast } from "react-hot-toast"; //notification lib
 import axios from "axios";
 import { storeInSession } from "../common/session";
 import { UserContext } from "../App";
-import { authWithGoogle } from "../common/firebase";
-import { TypeAnimation } from 'react-type-animation'; //Terminal effects for text
+import { authWithGoogle, authWithGithub } from "../common/firebase";
+import TextAnimationWrap from "../common/text-animation";
 
 
 const UserAuthForm = ({ type }) => {
-
-  const authForm = useRef();
 
   let { userAuth: { access_token }, setUserAuth } = useContext(UserContext)
 
@@ -75,7 +73,6 @@ const UserAuthForm = ({ type }) => {
   }
 
   const handleGoogleAuth = (e) => {
-
     e.preventDefault();
 
     authWithGoogle().then(user => {
@@ -85,14 +82,29 @@ const UserAuthForm = ({ type }) => {
       let formData = {
         access_token: user.accessToken
       }
-
       userAuthThroughServer(serverRoute, formData)
 
     })
       .catch(err => {
-        toast.error('Error login with google');
+        return toast.error('Error login with google');
+      })
+  }
 
-        return console.log(err)
+  const handleGithubAuth = (e) => {
+    e.preventDefault();
+
+    authWithGithub().then(user => {
+
+      let serverRoute = "/github-auth";
+
+      let formData = {
+        access_token: user.accessToken
+      }
+      userAuthThroughServer(serverRoute, formData)
+
+    })
+      .catch(err => {
+        return toast.error('Error login with github');
       })
   }
 
@@ -105,29 +117,11 @@ const UserAuthForm = ({ type }) => {
           <Toaster />
           <form id="formElement" className="w-[80%] max-w-[400px]">
 
-            <h1 className="text-4xl font-monospace capitalize text-center mb-24">
+            <h1 className="font-monospace text-center mb-24">
               {type == "sign-in" ?
-                <TypeAnimation
-                  sequence={[
-                    'Welcome back',
-                    1000
-                  ]}
-                  wrapper="span"
-                  speed={25}
-                  className="text-4xl"
-                  repeat={Infinity}
-                />
+                <TextAnimationWrap text="Welcome back" className="text-4xl" />
                 :
-                <TypeAnimation
-                  sequence={[
-                    'Join us today',
-                    1000
-                  ]}
-                  wrapper="span"
-                  speed={25}
-                  className="text-4xl"
-                  repeat={Infinity}
-                />
+                <TextAnimationWrap text="Join us today" className="text-4xl" />
               }
             </h1>
 
@@ -166,11 +160,18 @@ const UserAuthForm = ({ type }) => {
               <hr className="w-1/2 border-black"></hr>
             </div>
 
-            <button className="btn-light flex items-center justify-center gap-4 w-[90%] center"
-              onClick={handleGoogleAuth}>
-              <img src={googleIcon} className="w-5" alt="google-logo" />
-              continue with google
-            </button>
+            <div className="flex justify-around">
+              <button className="btn-light flex items-center justify-center gap-4 w-[35%] center"
+                onClick={handleGoogleAuth}>
+                Google
+                <img src={googleIcon} className="h-8 w-8 -mx-1" alt="google-logo" />
+              </button>
+              <button className="btn-light flex items-center justify-center gap-4 w-[35%] center"
+                onClick={handleGithubAuth}>
+                Github
+                <img src={githubIcon} className="w-9 -mx-1" alt="google-logo" />
+              </button>
+            </div>
 
             {
               type == "sign-in" ?

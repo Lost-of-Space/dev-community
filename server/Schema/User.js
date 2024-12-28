@@ -83,13 +83,13 @@ const userSchema = mongoose.Schema(
                 default: 0,
             },
         },
-        google_auth: {
+        provider_auth: {
             type: Boolean,
             default: false,
         },
-        blogs: {
+        posts: {
             type: [Schema.Types.ObjectId],
-            ref: "blogs",
+            ref: "posts",
             default: [],
         },
     },
