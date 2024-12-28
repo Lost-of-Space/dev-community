@@ -29,6 +29,7 @@ const App = () => {
             <Routes>
                 <Route path="/editor" element={<Editor />} />
                 <Route path="/" element={<Navbar />}>
+                    <Route index element={<h1>HomePage</h1>} />
                     <Route path="signin" element={<UserAuthForm type="sign-in" />} />
                     <Route path="signup" element={<UserAuthForm type="sign-up" />} />
                 </Route>

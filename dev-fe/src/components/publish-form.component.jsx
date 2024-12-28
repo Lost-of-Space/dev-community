@@ -123,7 +123,7 @@ const PublishForm = () => {
         <button className="w-12 h-12 absolute right-[5vw] z-10 top-[5%] lg:top-[10%]"
           onClick={handleCloseEvent}
         >
-          <span className="fi fi-br-cross"></span>
+          <span className="fi fi-br-undo-alt text-2xl"></span>
         </button>
 
         <div className="max-w-[550px] center">

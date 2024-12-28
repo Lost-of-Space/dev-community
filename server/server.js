@@ -127,7 +127,7 @@ server.post("/signin", (req, res) => {
         return res.status(403).json({ "error": "Invalid Credentials." }) //Email not found
       }
 
-      if (!user.google_auth) {
+      if (!user.provider_auth) {
         bcrypt.compare(password, user.personal_info.password, (err, result) => {
           if (err) {
             return res.status(403).json({ "error": "Error occured while login please try again" })
@@ -152,52 +152,77 @@ server.post("/signin", (req, res) => {
     })
 })
 
+
 //Google auth
 server.post("/google-auth", async (req, res) => {
-  let { access_token } = req.body
+  let { access_token } = req.body;
 
-  getAuth()
-    .verifyIdToken(access_token)
-    .then(async (decodedUser) => {
-      let { email, name } = decodedUser;
+  try {
+    const decodedUser = await getAuth().verifyIdToken(access_token);
+    const { email, name } = decodedUser;
 
-      let user = await User.findOne({ "personal_info.email": email }).select("personal_info.fullname personal_info.username personal_info.profile_img google_auth").then((u) => {
-        return u || null
-      })
+    const existingUser = await User.findOne({ "personal_info.email": email });
 
-        .catch(err => {
-          return res.status(500).json({ "error": err.message })
-        })
-
-      if (user) { //login
-        if (!user.google_auth) {
-          return res.status(403).json({ "error": "This email is already used without Google. Please log in with password to access the account." })
-        }
-      }
-      else {//sign up
-        let username = await generateUsername(email);
-
-        user = new User({
-          personal_info: { fullname: name, email, username },
-          google_auth: true
-        })
-
-        await user.save().then((u) => {
-          user = u;
-        })
-          .catch(err => {
-            return res.status(500).json({ "error": err.message })
-          })
+    if (existingUser) {
+      if (!existingUser.provider_auth) {
+        return res.status(403).json({
+          error: "This email is already used without Google. login with password or Github."
+        });
       }
 
-      return res.status(200).json(formatDataToSend(user))
+      return res.status(200).json(formatDataToSend(existingUser));
+    }
 
-    })
-    .catch(err => {
-      return res.status(500).json({ "error": "Failed to authenticate with google" })
-    })
+    const username = await generateUsername(email);
 
-})
+    const newUser = new User({
+      personal_info: { fullname: name, email, username },
+      provider_auth: true
+    });
+
+    const savedUser = await newUser.save();
+    return res.status(200).json(formatDataToSend(savedUser));
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Failed to authenticate with Google." });
+  }
+});
+
+
+//Github auth
+server.post("/github-auth", async (req, res) => {
+  let { access_token } = req.body;
+
+  try {
+    const decodedUser = await getAuth().verifyIdToken(access_token);
+    const { email, name } = decodedUser;
+
+    const existingUser = await User.findOne({ "personal_info.email": email });
+
+    if (existingUser) {
+      if (!existingUser.provider_auth) {
+        return res.status(403).json({
+          error: "This email is already used without Github. login with password or Google."
+        });
+      }
+
+      return res.status(200).json(formatDataToSend(existingUser));
+    }
+
+    const username = await generateUsername(email);
+
+    const newUser = new User({
+      personal_info: { fullname: name, email, username },
+      provider_auth: true
+    });
+
+    const savedUser = await newUser.save();
+    return res.status(200).json(formatDataToSend(savedUser));
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Failed to authenticate with Github." });
+  }
+});
 
 
 server.post('/create-post', verifyJWT, (req, res) => {
