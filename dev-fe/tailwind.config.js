@@ -29,6 +29,7 @@ export default {
         extend: {
             fontFamily: {
                 monogeist: ["'Geist Mono'", "sans-serif"],
+                sansmono: ["'Noto Sans Mono'", "sans-serif"],
                 monospace: ["'Space Mono'", "sans-serif"],
                 inter: ["'Inter'", "sans-serif"],
                 gelasio: ["'Gelasio'", "serif"]
