@@ -225,7 +225,11 @@ server.post("/github-auth", async (req, res) => {
 });
 
 
-//Posts
+/*
+  Posts
+*/
+
+// Latest Posts
 server.get('/latest-posts', (req, res) => {
   let maxLimit = 5;
 
@@ -242,6 +246,44 @@ server.get('/latest-posts', (req, res) => {
     })
 })
 
+// Trending Posts
+server.get("/trending-posts", (req, res) => {
+  Post.find({ draft: false })
+    .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
+    .sort({ "activity.total_read": -1, "activity.total_likes": -1, "publishedAt": -1 })
+    .select("post_id title publishedAt -_id")
+    .limit(5)
+    .then(posts => {
+      return res.status(200).json({ posts })
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message })
+    })
+})
+
+// Searching
+server.post('/search-posts', (req, res) => {
+
+  let { tag } = req.body;
+
+  let findQuery = { tags: tag, draft: false };
+
+  let maxLimit = 5;
+
+  Post.find(findQuery)
+    .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
+    .sort({ "publishedAt": -1 })
+    .select("post_id title des banner activity tags publishedAt -_id")
+    .limit(maxLimit)
+    .then(posts => {
+      return res.status(200).json({ posts })
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message })
+    })
+})
+
+// Create Post
 server.post('/create-post', verifyJWT, (req, res) => {
 
   let authorId = req.user;

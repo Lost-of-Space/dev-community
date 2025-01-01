@@ -1,5 +1,10 @@
 
-GET http://localhost:3000/latest-posts
+POST  http://localhost:3000/search-posts
+Content-Type: application/json
+
+{
+    "tag": "sky"
+}
 
 # POST http://localhost:3000/signup
 # Content-Type: application/json

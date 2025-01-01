@@ -3,7 +3,7 @@ import { getDay } from "../common/date";
 
 const PostCard = ({ content, author }) => {
   let { publishedAt, tags, title, des, banner, activity: { total_likes }, post_id: id } = content;
-  let { fullname, profile_img, username } = author;
+  let { fullname, profile_img } = author;
 
   return (
     <>
