@@ -7,11 +7,14 @@ import PostCard from "../components/post-card.component";
 import MinimalPostCard from "../components/minimal-post-card.component";
 import { activeTabRef } from "../components/inpage-navigation.component";
 import NoDataMessage from "../components/nodata.component";
+import { filterPaginationData } from "../common/filter-pagination-data";
+import LoadMoreDataBtn from "../components/load-more.component";
 
 const HomePage = () => {
 
   let [latestPosts, setLatestPosts] = useState(null);
   let [trendingPosts, setTrendingPosts] = useState(null);
+
   let [pageState, setPageState] = useState("home");
 
 
@@ -24,10 +27,18 @@ const HomePage = () => {
     "win11"
   ]
 
-  const fetchLatestPosts = () => {
-    axios.get(import.meta.env.VITE_SERVER_DOMAIN + "/latest-posts")
-      .then(({ data }) => {
-        setLatestPosts(data.posts)
+  const fetchLatestPosts = ({ page = 1 }) => {
+    axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/latest-posts", { page })
+      .then(async ({ data }) => {
+
+        let formatedData = await filterPaginationData({
+          state: latestPosts,
+          data: data.posts,
+          page,
+          countRoute: "/all-latest-posts-count"
+        })
+
+        setLatestPosts(formatedData);
       })
       .catch(err => {
         console.log(err);
@@ -44,10 +55,18 @@ const HomePage = () => {
       })
   }
 
-  const fetchPostsByCategory = () => {
-    axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/search-posts", { tag: pageState })
-      .then(({ data }) => {
-        setLatestPosts(data.posts)
+  const fetchPostsByCategory = ({ page = 1 }) => {
+    axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/search-posts", { tag: pageState, page })
+      .then(async ({ data }) => {
+        let formatedData = await filterPaginationData({
+          state: latestPosts,
+          data: data.posts,
+          page,
+          countRoute: "/search-posts-count",
+          data_to_send: { tag: pageState }
+        })
+
+        setLatestPosts(formatedData);
       })
       .catch(err => {
         console.log(err);
@@ -73,12 +92,13 @@ const HomePage = () => {
     activeTabRef.current.click();
 
     if (pageState == "home") {
-      fetchLatestPosts();
+      fetchLatestPosts({ page: 1 });
+    } else {
+      fetchPostsByCategory({ page: 1 });
     }
+
     if (!trendingPosts) {
       fetchTrendingPosts();
-    } else {
-      fetchPostsByCategory();
     }
 
   }, [pageState])
@@ -96,8 +116,8 @@ const HomePage = () => {
                   (
                     <Loader />
                   ) : (
-                    latestPosts.length ?
-                      latestPosts.map((post, i) => {
+                    latestPosts.results.length ?
+                      latestPosts.results.map((post, i) => {
                         return (<AnimationWrapper transition={{ duration: 1, delay: i * .1 }} key={i}>
                           <PostCard content={post} author={post.author.personal_info} />
                         </AnimationWrapper>);
@@ -106,6 +126,7 @@ const HomePage = () => {
                       <NoDataMessage message="No such posts found!" />
                   )
               }
+              <LoadMoreDataBtn state={latestPosts} fetchDataFunc={(pageState == "home" ? fetchLatestPosts : fetchPostsByCategory)} />
             </>
 
             {

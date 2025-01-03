@@ -230,18 +230,34 @@ server.post("/github-auth", async (req, res) => {
 */
 
 // Latest Posts
-server.get('/latest-posts', (req, res) => {
-  let maxLimit = 5;
+server.post('/latest-posts', (req, res) => {
+
+  let { page } = req.body;
+
+  let maxLimit = 5; // The limit of posts that comes from server
 
   Post.find({ draft: false })
     .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
     .sort({ "publishedAt": -1 })
     .select("post_id title des banner activity tags publishedAt -_id")
+    .skip((page - 1) * maxLimit)
     .limit(maxLimit)
     .then(posts => {
       return res.status(200).json({ posts })
     })
     .catch(err => {
+      return res.status(500).json({ error: err.message })
+    })
+})
+
+
+server.post("/all-latest-posts-count", (req, res) => {
+  Post.countDocuments({ draft: false })
+    .then(count => {
+      return res.status(200).json({ totalPosts: count })
+    })
+    .catch(err => {
+      console.log(err.message);
       return res.status(500).json({ error: err.message })
     })
 })
@@ -264,21 +280,36 @@ server.get("/trending-posts", (req, res) => {
 // Searching
 server.post('/search-posts', (req, res) => {
 
-  let { tag } = req.body;
+  let { tag, page } = req.body;
 
   let findQuery = { tags: tag, draft: false };
 
-  let maxLimit = 5;
+  let maxLimit = 1; // The limit of posts that comes from server
 
   Post.find(findQuery)
     .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
     .sort({ "publishedAt": -1 })
     .select("post_id title des banner activity tags publishedAt -_id")
+    .skip((page - 1) * maxLimit)
     .limit(maxLimit)
     .then(posts => {
       return res.status(200).json({ posts })
     })
     .catch(err => {
+      return res.status(500).json({ error: err.message })
+    })
+})
+
+server.post("/search-posts-count", (req, res) => {
+  let { tag } = req.body;
+  let findQuery = { tags: tag, draft: false };
+
+  Post.countDocuments(findQuery)
+    .then(count => {
+      return res.status(200).json({ totalPosts: count })
+    })
+    .catch(err => {
+      console.log(err.message);
       return res.status(500).json({ error: err.message })
     })
 })
