@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 export let activeTabLineRef;
 export let activeTabRef;
 
-const InPageNavigation = ({ routes, defaultHidden = [], defaultIndex = 0, children }) => {
+const InPageNavigation = ({ routes, defaultHidden = [], defaultIndex = 0, children, panelElements }) => {
 
   activeTabLineRef = useRef();
   activeTabRef = useRef();
@@ -33,7 +33,12 @@ const InPageNavigation = ({ routes, defaultHidden = [], defaultIndex = 0, childr
               <button
                 ref={i == defaultIndex ? activeTabRef : null}
                 key={i}
-                className={"p-3 px-4 capitalize rounded-t-md " + (inPageNavIndex == i ? "text-black font-bold" : "text-dark-grey") + (defaultHidden.includes(route) ? " md:hidden" : "")}
+                className={
+                  "p-3 px-4 capitalize rounded-t-md " +
+                  (inPageNavIndex == i ? "text-black font-bold" : "text-dark-grey") +
+                  (defaultHidden.includes(route) ? " md:hidden" : "") +
+                  " max-w-[350px] truncate"
+                }
                 onClick={(e) => {
                   changePageState(e.target, i)
                 }}
@@ -43,6 +48,12 @@ const InPageNavigation = ({ routes, defaultHidden = [], defaultIndex = 0, childr
             )
           })
         }
+
+        <>
+          {
+            panelElements
+          }
+        </>
 
         <hr ref={activeTabLineRef} className="absolute bg-black h-[3px] rounded-t-xl bottom-0 duration-300" />
 

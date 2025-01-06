@@ -280,9 +280,15 @@ server.get("/trending-posts", (req, res) => {
 // Searching
 server.post('/search-posts', (req, res) => {
 
-  let { tag, page } = req.body;
+  let { tag, query, page } = req.body;
 
-  let findQuery = { tags: tag, draft: false };
+  let findQuery;
+
+  if (tag) {
+    findQuery = { tags: tag, draft: false };
+  } else if (query) {
+    findQuery = { draft: false, title: new RegExp(query, 'i') }
+  }
 
   let maxLimit = 1; // The limit of posts that comes from server
 
@@ -301,8 +307,15 @@ server.post('/search-posts', (req, res) => {
 })
 
 server.post("/search-posts-count", (req, res) => {
-  let { tag } = req.body;
-  let findQuery = { tags: tag, draft: false };
+  let { tag, query } = req.body;
+
+  let findQuery;
+
+  if (tag) {
+    findQuery = { tags: tag, draft: false };
+  } else if (query) {
+    findQuery = { draft: false, title: new RegExp(query, 'i') }
+  }
 
   Post.countDocuments(findQuery)
     .then(count => {

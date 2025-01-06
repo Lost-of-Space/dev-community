@@ -17,6 +17,7 @@ const HomePage = () => {
 
   let [pageState, setPageState] = useState("home");
 
+  let [cardStyle, setCardStyle] = useState(1);
 
   let categories = [
     "frontend",
@@ -26,6 +27,13 @@ const HomePage = () => {
     "sky",
     "win11"
   ]
+
+  const changeCardStyle = () => {
+    setCardStyle(cardStyle + 1);
+    if (cardStyle >= 4) {
+      setCardStyle(1);
+    }
+  }
 
   const fetchLatestPosts = ({ page = 1 }) => {
     axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/latest-posts", { page })
@@ -87,7 +95,6 @@ const HomePage = () => {
     setPageState(category);
   }
 
-
   useEffect(() => {
     activeTabRef.current.click();
 
@@ -109,7 +116,14 @@ const HomePage = () => {
         {/* latest posts */}
         <div className="w-full">
 
-          <InPageNavigation routes={[pageState, "trending posts"]} defaultHidden={["trending posts"]}>
+          <InPageNavigation routes={[pageState, "trending posts"]} defaultHidden={["trending posts"]}
+            panelElements={
+              <div className="flex justify-center items-center ml-auto">
+                <button className="btn-mini w-10 h-10" onClick={changeCardStyle}>
+                  <span className="fi fi-br-objects-column -mb-[4px]"></span>
+                </button>
+              </div>
+            }>
             <>
               {
                 latestPosts == null ?
@@ -117,11 +131,15 @@ const HomePage = () => {
                     <Loader />
                   ) : (
                     latestPosts.results.length ?
-                      latestPosts.results.map((post, i) => {
-                        return (<AnimationWrapper transition={{ duration: 1, delay: i * .1 }} key={i}>
-                          <PostCard content={post} author={post.author.personal_info} />
-                        </AnimationWrapper>);
-                      })
+                      <div className={cardStyle === 4 ? "grid grid-cols-1 lg:grid-cols-2 gap-6 mb-3" : ""}>
+                        {
+                          latestPosts.results.map((post, i) => {
+                            return (<AnimationWrapper transition={{ duration: 1, delay: i * .1 }} key={i}>
+                              <PostCard content={post} author={post.author.personal_info} style={cardStyle} />
+                            </AnimationWrapper>);
+                          })
+                        }
+                      </div>
                       :
                       <NoDataMessage message="No such posts found!" />
                   )
@@ -148,7 +166,7 @@ const HomePage = () => {
         </div>
 
         {/* filters and trends */}
-        <div className="min-w-[40%] lg-min-w-[400px] max-w-min border-l border-grey pl-8 pt-3 max-md:hidden">
+        <div className="min-w-[30%] lg-min-w-[400px] max-w-min border-l border-grey pl-8 pt-3 max-md:hidden">
           <div className="flex flex-col gap-10">
             <div>
               <h1 className="font-medium text-xl mb-8">Suggested tags</h1>
