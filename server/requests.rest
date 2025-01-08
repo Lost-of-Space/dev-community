@@ -1,9 +1,9 @@
 
-POST  http://localhost:3000/search-posts
+POST  http://localhost:3000/search-users
 Content-Type: application/json
 
 {
-    "tag": "sky"
+    "query": "lost"
 }
 
 # POST http://localhost:3000/signup

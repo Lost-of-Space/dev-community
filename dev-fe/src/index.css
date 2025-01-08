@@ -58,7 +58,7 @@
     }
 
     .btn-mini {
-        @apply bg-grey text-black rounded-[10px] flex items-center justify-center hover:bg-dark-grey/20;
+        @apply bg-grey text-black rounded-[10px] flex items-center justify-center hover:bg-dark-grey/10 active:bg-dark-grey/20;
     }
 
     .input-box {

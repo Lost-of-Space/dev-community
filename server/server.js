@@ -322,10 +322,40 @@ server.post("/search-posts-count", (req, res) => {
       return res.status(200).json({ totalPosts: count })
     })
     .catch(err => {
-      console.log(err.message);
       return res.status(500).json({ error: err.message })
     })
 })
+
+server.post("/search-users", (req, res) => {
+  let { query, isExact } = req.body;
+
+  let searchCondition;
+
+  if (isExact) {
+    //searching by @username
+    searchCondition = { "personal_info.username": new RegExp(`^${query}`, 'i') };
+  } else {
+    //default search
+    searchCondition = {
+      $or: [
+        { "personal_info.username": new RegExp(query, 'i') },
+        { "personal_info.fullname": new RegExp(query, 'i') }
+      ]
+    };
+  }
+
+  User.find(searchCondition)
+    .limit(50)
+    .select("personal_info.fullname personal_info.username personal_info.profile_img -_id")
+    .then(users => {
+      return res.status(200).json({ users });
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message });
+    });
+});
+
+
 
 // Create Post
 server.post('/create-post', verifyJWT, (req, res) => {

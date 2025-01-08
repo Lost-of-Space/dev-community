@@ -8,6 +8,7 @@ import PostCard from "../components/post-card.component";
 import NoDataMessage from "../components/nodata.component";
 import { filterPaginationData } from "../common/filter-pagination-data";
 import LoadMoreDataBtn from "../components/load-more.component";
+import UserCard from "../components/usercard.component";
 
 const SearchPage = () => {
 
@@ -15,14 +16,21 @@ const SearchPage = () => {
 
     let [latestPosts, setLatestPosts] = useState(null);
 
-    let [cardStyle, setCardStyle] = useState(1);
+    let [users, setUsers] = useState(null);
+
+    let [cardStyle, setCardStyle] = useState(() => {
+        return parseInt(localStorage.getItem("cardStyle")) || 1;
+    });
 
     const changeCardStyle = () => {
-        setCardStyle(cardStyle + 1);
-        if (cardStyle >= 4) {
-            setCardStyle(1);
+        let newStyle = cardStyle + 1;
+        if (newStyle > 4) {
+            newStyle = 1;
         }
-    }
+        setCardStyle(newStyle);
+        //saves to local storage
+        localStorage.setItem("cardStyle", newStyle);
+    };
 
     const searchPosts = ({ page = 1, create_new_arr = false }) => {
         axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/search-posts", { query, page })
@@ -43,11 +51,46 @@ const SearchPage = () => {
             })
     }
 
+    const fetchUsers = () => {
+        const isExact = query.startsWith('@');
+        const searchQuery = isExact ? query.slice(1) : query;
+
+        axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/search-users", { query: searchQuery, isExact })
+            .then(({ data: { users } }) => {
+                setUsers(users);
+            })
+            .catch(err => {
+                console.log(err);
+            });
+    };
+
+
     useEffect(() => {
         setLatestPosts(null);
+        setUsers(null);
         searchPosts({ page: 1, create_new_arr: true });
+        fetchUsers();
 
     }, [query])
+
+    const UserCardWrapper = () => {
+        return (
+            <>
+                {
+                    users == null ? <Loader />
+                        :
+                        users.length ?
+                            users.map((user, i) => {
+                                return <AnimationWrapper key={i} transition={{ duration: 1, delay: i * 0.08 }}>
+                                    <UserCard user={user} />
+                                </AnimationWrapper>;
+                            })
+                            :
+                            <NoDataMessage message="No such user found." />
+                }
+            </>
+        )
+    }
 
     return (
         <section className="h-cover flex justify-center gap-10">
@@ -82,7 +125,19 @@ const SearchPage = () => {
                         <LoadMoreDataBtn state={latestPosts} fetchDataFunc={searchPosts} />
                     </>
 
+                    <>
+                        <UserCardWrapper />
+                    </>
+
                 </InPageNavigation>
+            </div>
+
+            <div className="min-w-[30%] lg-min-w-[400px] max-w-min border-l border-grey pl-8 pt-3 max-md:hidden">
+                <h1 className="font-medium text-xl mb-8">Users related to search
+                    <span className="fi fi-rr-user ml-2 mt-1"></span>
+                </h1>
+
+                <UserCardWrapper />
             </div>
 
         </section>

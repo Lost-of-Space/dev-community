@@ -17,8 +17,6 @@ const HomePage = () => {
 
   let [pageState, setPageState] = useState("home");
 
-  let [cardStyle, setCardStyle] = useState(1);
-
   let categories = [
     "frontend",
     "backend",
@@ -28,12 +26,19 @@ const HomePage = () => {
     "win11"
   ]
 
+  let [cardStyle, setCardStyle] = useState(() => {
+    return parseInt(localStorage.getItem("cardStyle")) || 1;
+  });
+
   const changeCardStyle = () => {
-    setCardStyle(cardStyle + 1);
-    if (cardStyle >= 4) {
-      setCardStyle(1);
+    let newStyle = cardStyle + 1;
+    if (newStyle > 4) {
+      newStyle = 1;
     }
-  }
+    setCardStyle(newStyle);
+    //saves to local storage
+    localStorage.setItem("cardStyle", newStyle);
+  };
 
   const fetchLatestPosts = ({ page = 1 }) => {
     axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/latest-posts", { page })
