@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import logo from "../imgs/logo.png";
+import logo from "../imgs/logo.svg";
 import { UserContext } from '../App';
 import UserNavigationPanel from "./user-navigation.component";
 
@@ -37,7 +37,7 @@ const Navbar = () => {
       <nav className="navbar z-[100]">
 
         <Link to="/" className="flex-none w-20">
-          <img src={logo} className="w-full" alt="logo" />
+          <img src={logo} className="w-full select-none" alt="logo" />
         </Link>
 
         <div className={"absolute bg-white w-full left-0 top-full mt-0.5 border-b border-grey py-4 px-[5vw] md:border-0 md:block md:relative md:inset-0 md:p-0 md:w-auto md:show " + (searchBoxVisibility ? "show" : "hide")}>
