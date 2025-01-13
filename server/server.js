@@ -225,6 +225,159 @@ server.post("/github-auth", async (req, res) => {
 });
 
 
+/*
+  Posts
+*/
+
+// Latest Posts
+server.post('/latest-posts', (req, res) => {
+
+  let { page } = req.body;
+
+  let maxLimit = 5; // The limit of posts that comes from server
+
+  Post.find({ draft: false })
+    .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
+    .sort({ "publishedAt": -1 })
+    .select("post_id title des banner activity tags publishedAt -_id")
+    .skip((page - 1) * maxLimit)
+    .limit(maxLimit)
+    .then(posts => {
+      return res.status(200).json({ posts })
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message })
+    })
+})
+
+
+server.post("/all-latest-posts-count", (req, res) => {
+  Post.countDocuments({ draft: false })
+    .then(count => {
+      return res.status(200).json({ totalPosts: count })
+    })
+    .catch(err => {
+      console.log(err.message);
+      return res.status(500).json({ error: err.message })
+    })
+})
+
+// Trending Posts
+server.get("/trending-posts", (req, res) => {
+  Post.find({ draft: false })
+    .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
+    .sort({ "activity.total_read": -1, "activity.total_likes": -1, "publishedAt": -1 })
+    .select("post_id title publishedAt -_id")
+    .limit(5)
+    .then(posts => {
+      return res.status(200).json({ posts })
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message })
+    })
+})
+
+// Searching
+server.post('/search-posts', (req, res) => {
+
+  let { tag, query, author, page } = req.body;
+
+  let findQuery;
+
+  if (tag) {
+    findQuery = { tags: tag, draft: false };
+  } else if (query) {
+    findQuery = { draft: false, title: new RegExp(query, 'i') }
+  } else if (author) {
+    findQuery = { author, draft: false }
+  }
+
+  let maxLimit = 1; // The limit of posts that comes from server
+
+  Post.find(findQuery)
+    .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
+    .sort({ "publishedAt": -1 })
+    .select("post_id title des banner activity tags publishedAt -_id")
+    .skip((page - 1) * maxLimit)
+    .limit(maxLimit)
+    .then(posts => {
+      return res.status(200).json({ posts })
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message })
+    })
+})
+
+server.post("/search-posts-count", (req, res) => {
+  let { tag, query, author } = req.body;
+
+  let findQuery;
+
+  if (tag) {
+    findQuery = { tags: tag, draft: false };
+  } else if (query) {
+    findQuery = { draft: false, title: new RegExp(query, 'i') }
+  } else if (author) {
+    findQuery = { author, draft: false }
+  }
+
+
+  Post.countDocuments(findQuery)
+    .then(count => {
+      return res.status(200).json({ totalPosts: count })
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message })
+    })
+})
+
+server.post("/search-users", (req, res) => {
+  let { query, isExact } = req.body;
+
+  let searchCondition;
+
+  if (isExact) {
+    //searching by @username
+    searchCondition = { "personal_info.username": new RegExp(`^${query}`, 'i') };
+  } else {
+    //default search
+    searchCondition = {
+      $or: [
+        { "personal_info.username": new RegExp(query, 'i') },
+        { "personal_info.fullname": new RegExp(query, 'i') }
+      ]
+    };
+  }
+
+  User.find(searchCondition)
+    .limit(50)
+    .select("personal_info.fullname personal_info.username personal_info.profile_img -_id")
+    .then(users => {
+      return res.status(200).json({ users });
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message });
+    });
+});
+
+//Get user profile
+server.post("/get-profile", (req, res) => {
+
+  let { username } = req.body;
+
+  User.findOne({ "personal_info.username": username })
+    .select("-personal_info.password -provider_auth -updatedAt -posts")
+    .then(user => {
+      return res.status(200).json(user);
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message });
+    });
+})
+
+
+
+// Create Post
 server.post('/create-post', verifyJWT, (req, res) => {
 
   let authorId = req.user;

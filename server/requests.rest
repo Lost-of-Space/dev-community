@@ -1,4 +1,10 @@
-# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NjE1ZWE0ZjFhMDg4Yzk5Zjg2ZmFiMiIsImlhdCI6MTczNDQzNDQ2OH0.TyHLuF7mBUv97H3iAgSagej3D3D1a2ZXCFEfJ4PtdDA
+
+POST  http://localhost:3000/get-profile
+Content-Type: application/json
+
+{
+    "username": "tetser21"
+}
 
 # POST http://localhost:3000/signup
 # Content-Type: application/json
@@ -19,16 +25,16 @@
 # }
 
 
-POST http://localhost:3000/create-post
-Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NjE1ZWE0ZjFhMDg4Yzk5Zjg2ZmFiMiIsImlhdCI6MTczNDQzNDQ2OH0.TyHLuF7mBUv97H3iAgSagej3D3D1a2ZXCFEfJ4PtdDA
+# POST http://localhost:3000/create-post
+# Content-Type: application/json
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NjE1ZWE0ZjFhMDg4Yzk5Zjg2ZmFiMiIsImlhdCI6MTczNDQzNDQ2OH0.TyHLuF7mBUv97H3iAgSagej3D3D1a2ZXCFEfJ4PtdDA
 
-{
-    "title": "Test Title2",
-    "banner": "https://test.com//url",
-    "des": "A short desc",
-    "content": {
-        "blocks": [1, 2]
-    },
-    "tags": ["tag1", "Tag 2"]
-}
+# {
+#     "title": "Test Title2",
+#     "banner": "https://test.com//url",
+#     "des": "A short desc",
+#     "content": {
+#         "blocks": [1, 2]
+#     },
+#     "tags": ["tag1", "Tag 2"]
+# }

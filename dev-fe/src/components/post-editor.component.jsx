@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import logo from "../imgs/logo.png";
+import logo from "../imgs/logo.svg";
 import AnimationWrapper from "../common/page-animation";
 import defaultBanner from "../imgs/default_banner.png"
 import { useContext, useEffect, useState } from "react";

@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Gelasio&family=Inter:wght@400;500&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 @import "@flaticon/flaticon-uicons/css/all/all";
 
 @tailwind base;
@@ -29,7 +30,7 @@
     }
 
     ::selection {
-        @apply bg-purple/30;
+        @apply bg-royalblue/30;
     }
 
     img {
@@ -54,6 +55,10 @@
 
     .btn-light {
         @apply btn-dark bg-grey text-black;
+    }
+
+    .btn-mini {
+        @apply bg-grey text-black rounded-[10px] flex items-center justify-center hover:bg-dark-grey/10 active:bg-dark-grey/20;
     }
 
     .input-box {
@@ -104,12 +109,12 @@
     }
 
     #textEditor *,
-    .blog-page-content * {
+    .post-page-content * {
         @apply font-monospace text-xl leading-10 md:text-2xl;
     }
 
     #textEditor a,
-    .blog-page-content a {
+    .post-page-content a {
         @apply text-purple underline hover:opacity-50;
     }
 
@@ -117,11 +122,11 @@
         @apply p-3 bg-grey rounded-full px-6 capitalize;
     }
 
-    .blog-title {
+    .post-title {
         @apply text-2xl font-medium leading-7 line-clamp-3 sm:line-clamp-2;
     }
 
-    .blog-index {
+    .post-index {
         @apply text-4xl sm:text-3xl lg:text-5xl font-bold text-grey leading-none;
     }
 }
