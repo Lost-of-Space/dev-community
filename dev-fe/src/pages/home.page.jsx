@@ -171,7 +171,7 @@ const HomePage = () => {
         </div>
 
         {/* filters and trends */}
-        <div className="min-w-[30%] lg-min-w-[400px] max-w-min border-l border-grey pl-8 pt-3 max-md:hidden">
+        <div className="min-w-[30%] lg:min-w-[250px] max-w-min lg:max-w-[30%] border-l border-grey pl-8 pt-3 max-md:hidden">
           <div className="flex flex-col gap-10">
             <div>
               <h1 className="font-medium text-xl mb-8">Suggested tags</h1>

@@ -1,10 +1,19 @@
 
-POST  http://localhost:3000/get-profile
+POST  http://localhost:3000/get-post
 Content-Type: application/json
 
 {
-    "username": "tetser21"
+    "post_id": "Look-at-this-amazing-sky--Zm1hEUvWVv2inX3ejtxu8"
 }
+
+
+# POST  http://localhost:3000/get-profile
+# Content-Type: application/json
+
+# {
+#     "username": "tetser21"
+# }
+
 
 # POST http://localhost:3000/signup
 # Content-Type: application/json

@@ -12,6 +12,7 @@ import { getAuth } from "firebase-admin/auth"
 //schema
 import User from './Schema/User.js';
 import Post from './Schema/Post.js';
+import Notification from './Schema/Notification.js';
 
 
 const server = express();
@@ -277,22 +278,51 @@ server.get("/trending-posts", (req, res) => {
     })
 })
 
-// Searching
-server.post('/search-posts', (req, res) => {
+//Get Posts
+server.post("/get-post", (req, res) => {
+  let { post_id, draft, mode } = req.body;
 
-  let { tag, query, author, page } = req.body;
+  let incrementVal = mode != 'edit' ? 1 : 0;
+
+  Post.findOneAndUpdate({ post_id }, { $inc: { "activity.total_reads": incrementVal } })
+    .populate("author", "personal_info.fullname personal_info.username personal_info.profile_img")
+    .select("title des content banner activity publishedAt post_id tags")
+    .then(post => {
+
+      User.findOneAndUpdate({ "personal_info.username": post.author.personal_info.username }, {
+        $inc: { "account_info.total_reads": incrementVal }
+      })
+        .catch(err => {
+          return res.status(500).json({ error: err.message });
+        })
+
+      if (post.draft && !draft) {
+        return res.status(500).json({ error: 'You can not access a draft post' })
+      }
+      return res.status(200).json({ post });
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message });
+    })
+
+})
+
+// Searching
+server.post("/search-posts", (req, res) => {
+
+  let { tag, query, author, page, limit, eliminate_post } = req.body;
 
   let findQuery;
 
   if (tag) {
-    findQuery = { tags: tag, draft: false };
+    findQuery = { tags: tag, draft: false, post_id: { $ne: eliminate_post } };
   } else if (query) {
     findQuery = { draft: false, title: new RegExp(query, 'i') }
   } else if (author) {
     findQuery = { author, draft: false }
   }
 
-  let maxLimit = 1; // The limit of posts that comes from server
+  let maxLimit = limit ? limit : 2; // The limit of posts that comes from server
 
   Post.find(findQuery)
     .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
@@ -382,7 +412,7 @@ server.post('/create-post', verifyJWT, (req, res) => {
 
   let authorId = req.user;
 
-  let { title, des, banner, tags, content, draft } = req.body;
+  let { title, des, banner, tags, content, draft, id } = req.body;
 
   if (!title.length) {
     return res.status(403).json({ error: "You must provide a title." });
@@ -408,31 +438,90 @@ server.post('/create-post', verifyJWT, (req, res) => {
 
   tags = tags.map(tag => tag.toLowerCase());
 
-  let post_id = title.replace(/[^a-zA-Z0-9]/g, ' ').replace(/\s+/g, "-").trim() + "-" + nanoid();
+  let post_id = id || title.replace(/[^a-zA-Z0-9]/g, ' ').replace(/\s+/g, "-").trim() + "-" + nanoid();
 
-  let post = new Post({
-    title, des, banner, content, tags, author: authorId, post_id, draft: Boolean(draft)
-  })
-
-  post.save().then(post => {
-
-    // test if post draft == true or false, and updating total posts count
-    let incrementVal = draft ? 0 : 1;
-    User.findOneAndUpdate({ _id: authorId }, { $inc: { "account_info.total_posts": incrementVal }, $push: { "posts": post._id } })
-
-      .then(user => {
-        return res.status(200).json({ id: post.post_id })
+  if (id) {
+    Post.findOneAndUpdate({ post_id }, { title, des, banner, content, tags, draft: draft ? draft : false })
+      .then(() => {
+        return res.status(200).json({ id: post_id })
       })
-
       .catch(err => {
-        return res.status(500).json({ error: "Failed tp update total posts number" })
+        return res.status(500).json({ error: err.message })
       })
-  })
+  }
+
+  else {
+    let post = new Post({
+      title, des, banner, content, tags, author: authorId, post_id, draft: Boolean(draft)
+    })
+
+    post.save().then(post => {
+
+      // test if post draft == true or false, and updating total posts count
+      let incrementVal = draft ? 0 : 1;
+      User.findOneAndUpdate({ _id: authorId }, { $inc: { "account_info.total_posts": incrementVal }, $push: { "posts": post._id } })
+
+        .then(user => {
+          return res.status(200).json({ id: post.post_id })
+        })
+
+        .catch(err => {
+          return res.status(500).json({ error: "Failed tp update total posts number" })
+        })
+    })
+      .catch(err => {
+        return res.status(500).json({ error: err.message })
+      })
+  }
+})
+
+server.post("/like-post", verifyJWT, (req, res) => {
+  let user_id = req.user;
+
+  let { _id, isLikedByUser } = req.body;
+
+  let incrementVal = !isLikedByUser ? 1 : -1;
+
+  Post.findOneAndUpdate({ _id }, { $inc: { "activity.total_likes": incrementVal } })
+    .then(post => {
+      if (!isLikedByUser) {
+        let like = new Notification({
+          type: "like",
+          post: _id,
+          notification_for: post.author,
+          user: user_id
+        })
+
+        like.save().then(notification => {
+          return res.status(200).json({ liked_by_user: true })
+        })
+      } else {
+        Notification.findOneAndDelete({ user: user_id, post: _id, type: "like" })
+          .then(data => {
+            return res.status(200).json({ liked_by_user: false })
+          })
+
+          .catch(err => {
+            return res.status(500).json({ error: err.message })
+          })
+      }
+    })
+})
+
+server.post("/isliked-by-user", verifyJWT, (req, res) => {
+  let user_id = req.user;
+
+  let { _id } = req.body;
+
+  Notification.exists({ user: user_id, type: "like", post: _id })
+    .then(result => {
+      return res.status(200).json({ result })
+    })
     .catch(err => {
       return res.status(500).json({ error: err.message })
     })
-
 })
+
 
 server.listen(PORT, () => {
   console.log('Listening on port: ' + PORT);

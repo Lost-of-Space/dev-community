@@ -129,6 +129,10 @@
     .post-index {
         @apply text-4xl sm:text-3xl lg:text-5xl font-bold text-grey leading-none;
     }
+
+    .paragraph a {
+        @apply text-royalblue hover:underline;
+    }
 }
 
 .ce-block__content,

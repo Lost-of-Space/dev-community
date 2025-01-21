@@ -17,7 +17,7 @@ const MinimalPostCard = ({ post, index }) => {
           <p className="min-w-fit">{getDay(publishedAt)}</p>
         </div>
 
-        <h1 className="post-title text-2xl font-bold mb-5">{title}</h1>
+        <h1 className="post-title text-2xl font-bold mb-5 line-clamp-1">{title}</h1>
       </div>
     </Link>
   )
