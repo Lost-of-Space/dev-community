@@ -5,8 +5,8 @@ import logo from "../imgs/logo.svg";
 
 const PageNotFound = () => {
   return (
-    <section className="h-cover relative p-10 flex flex-col items-center gap-2 text-center">
-      <img src={pageNotFoundImage} alt="404 error image" className="select-none border-2 border-grey w-72 aspect-square object-cover rounded" />
+    <section className="h-cover relative p-10 flex flex-col items-center gap-3 text-center">
+      <img src={pageNotFoundImage} alt="404 error image" className="select-none border-2 border-grey w-72 aspect-square object-cover" />
 
       <TextAnimationWrap text="Oops! Page not found.." className="font-bold text-2xl sm:text-3xl" speed={30} />
       <p className="font-medium">The page you are looking for does not exists.</p>

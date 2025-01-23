@@ -13,7 +13,7 @@ import LoadMoreDataBtn from "../components/load-more.component";
 const HomePage = () => {
 
   let [latestPosts, setLatestPosts] = useState(null);
-  let [trendingPosts, setTrendingPosts] = useState(null);
+  let [popularPosts, setPopularPosts] = useState(null);
 
   let [pageState, setPageState] = useState("home");
 
@@ -58,10 +58,10 @@ const HomePage = () => {
       })
   }
 
-  const fetchTrendingPosts = () => {
-    axios.get(import.meta.env.VITE_SERVER_DOMAIN + "/trending-posts")
+  const fetchPopularPosts = () => {
+    axios.get(import.meta.env.VITE_SERVER_DOMAIN + "/popular-posts")
       .then(({ data }) => {
-        setTrendingPosts(data.posts)
+        setPopularPosts(data.posts)
       })
       .catch(err => {
         console.log(err);
@@ -109,8 +109,8 @@ const HomePage = () => {
       fetchPostsByCategory({ page: 1 });
     }
 
-    if (!trendingPosts) {
-      fetchTrendingPosts();
+    if (!popularPosts) {
+      fetchPopularPosts();
     }
 
   }, [pageState])
@@ -121,7 +121,7 @@ const HomePage = () => {
         {/* latest posts */}
         <div className="w-full">
 
-          <InPageNavigation routes={[pageState, "trending posts"]} defaultHidden={["trending posts"]}
+          <InPageNavigation routes={[pageState, "popular posts"]} defaultHidden={["popular posts"]}
             panelElements={
               <div className="flex justify-center items-center ml-auto">
                 <button className="btn-mini w-10 h-10" onClick={changeCardStyle}>
@@ -130,6 +130,17 @@ const HomePage = () => {
               </div>
             }>
             <>
+
+              <div className="mb-8">
+                <h1 className="font-medium max-md:text-xl text-2xl mb-2">Suggested tags:</h1>
+                <div className="flex gap-3 flex-wrap">
+                  {
+                    categories.map((category, i) => {
+                      return <button onClick={loadPostByCategory} className={"tag-btn max-md:text-base max-md:py-2 max-md:px-4 " + (pageState == category ? "tag-btn-active" : "")} key={i}>{category}</button>
+                    })
+                  }
+                </div>
+              </div>
               {
                 latestPosts == null ?
                   (
@@ -153,11 +164,11 @@ const HomePage = () => {
             </>
 
             {
-              trendingPosts == null ?
+              popularPosts == null ?
                 (
                   <Loader />
-                ) : (trendingPosts.length ?
-                  trendingPosts.map((post, i) => {
+                ) : (popularPosts.length ?
+                  popularPosts.map((post, i) => {
                     return (<AnimationWrapper transition={{ duration: 1, delay: i * .1 }} key={i}>
                       <MinimalPostCard post={post} index={i} />
                     </AnimationWrapper>);
@@ -173,28 +184,28 @@ const HomePage = () => {
         {/* filters and trends */}
         <div className="min-w-[30%] lg:min-w-[250px] max-w-min lg:max-w-[30%] border-l border-grey pl-8 pt-3 max-md:hidden">
           <div className="flex flex-col gap-10">
-            <div>
-              <h1 className="font-medium text-xl mb-8">Suggested tags</h1>
+            {/* <div>
+              <h1 className="font-medium text-2xl mb-8">Suggested tags</h1>
               <div className="flex gap-3 flex-wrap">
                 {
                   categories.map((category, i) => {
-                    return <button onClick={loadPostByCategory} className={"tag " + (pageState == category ? "bg-black text-white" : "")} key={i}>{category}</button>
+                    return <button onClick={loadPostByCategory} className={"tag-btn " + (pageState == category ? "tag-btn-active" : "")} key={i}>{category}</button>
                   })
                 }
               </div>
-            </div>
+            </div> */}
 
             <div>
-              <h1 className="font-medium text-xl mb-8">
-                Trending <span className="fi fi-br-arrow-trend-up"></span>
+              <h1 className="font-medium text-2xl mb-8">
+                Top 10 Posts <span className="fi fi-br-arrow-trend-up"></span>
               </h1>
 
               {
-                trendingPosts == null ?
+                popularPosts == null ?
                   (
                     <Loader />
-                  ) : (trendingPosts.length ?
-                    trendingPosts.map((post, i) => {
+                  ) : (popularPosts.length ?
+                    popularPosts.map((post, i) => {
                       return (<AnimationWrapper transition={{ duration: 1, delay: i * .1 }} key={i}>
                         <MinimalPostCard post={post} index={i} />
                       </AnimationWrapper>);

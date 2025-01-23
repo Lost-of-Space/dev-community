@@ -112,16 +112,24 @@ const UserAuthForm = ({ type }) => {
     access_token ?
       <Navigate to="/" />
       :
-      <AnimationWrapper keyValue={type}>
+      <AnimationWrapper keyValue={type} duration="2">
         <section className="h-cover flex items-center justify-center">
           <Toaster />
-          <form id="formElement" className="w-[80%] max-w-[400px]">
+
+          <div className={"rounded-full absolute z-20 flex items-center justify-center select-none max-md:hidden max-lg:hidden h-[160%] w-[85%] " + (type == "sign-in" ? "animate-slideToLeft -right-[40%]  bg-gradient-to-tl from-50%" : "animate-slideToRight -left-[40%]  bg-gradient-to-br from-50%") + " from-black to-black/60"}>
+            <div className={(type == "sign-in" ? "mr-[50%]" : "ml-[50%]")}>
+              <h2 className="text-white font-bold text-2xl mb-4">{type == "sign-in" ? "Nice to see you again!" : "For first time here?"}</h2>
+              <p className="text-white/80 text-xl">{type == "sign-in" ? "Log in to continue your Adventure!)" : "Register to start your Adventure!"}</p>
+            </div>
+          </div>
+
+          <form id="formElement" className={"z-0 w-[80%] max-w-[400px] lg:absolute " + (type == "sign-in" ? "left-[15%] animate-slideToLeft" : "right-[15%] animate-slideToRight")}>
 
             <h1 className="font-monospace text-center mb-24">
               {type == "sign-in" ?
                 <TextAnimationWrap text="Welcome back" className="text-4xl" />
                 :
-                <TextAnimationWrap text="Join us today" className="text-4xl" />
+                <TextAnimationWrap text="Register now" className="text-4xl" />
               }
             </h1>
 
@@ -177,14 +185,14 @@ const UserAuthForm = ({ type }) => {
               type == "sign-in" ?
                 <p className="mt-6 text-dark-grey text-xl text-center">
                   Don't have an account?
-                  <Link to="/signup" className="underline text-black text-xl ml-1">
-                    Join us today
+                  <Link to="/signup" className="underline px-1 text-black text-xl ml-1">
+                    Register here
                   </Link>
                 </p>
                 :
                 <p className="mt-6 text-dark-grey text-xl text-center">
-                  Already a member?
-                  <Link to="/signin" className="underline text-black text-xl ml-1">
+                  Already registered?
+                  <Link to="/signin" className="underline px-1 text-black text-xl ml-1">
                     Sign in here
                   </Link>
                 </p>

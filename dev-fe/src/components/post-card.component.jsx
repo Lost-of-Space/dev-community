@@ -12,8 +12,9 @@ const PostCard = ({ content, author, style }) => {
         className="flex flex-col gap-8 items-start border-b border-grey pb-5 mb-4 relative"
       >
         <div
-          className="w-full bg-cover bg-center p-6 text-black rounded-[20px] overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+          className="w-full bg-cover bg-center p-6 text-black overflow-hidden shadow-md hover:shadow-lg transition-shadow"
           style={{
+            /* rounded-[20px] */
             backgroundImage: `linear-gradient(to right, rgba(255, 255, 255, 255.7), rgba(255, 255, 255, 0.3)), url(${banner})`,
           }}
         >
@@ -29,7 +30,7 @@ const PostCard = ({ content, author, style }) => {
           <p className="text-lg line-clamp-2">{des}</p>
 
           <div className="flex gap-4 mt-4">
-            <span className="btn-light py-1 px-4">{tags[0]}</span>
+            <span className="tag py-1 px-4">{tags[0]}</span>
             <span className="ml-3 flex items-center gap-2 text-light-grey">
               <span className="fi fi-br-heart -mb-1"></span>
               {total_likes}
@@ -47,8 +48,9 @@ const PostCard = ({ content, author, style }) => {
         className="flex flex-col gap-8 items-start border-b border-grey pb-5 mb-4 relative"
       >
         <div
-          className="w-full bg-cover bg-center p-6 text-white rounded-[20px] overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+          className="w-full bg-cover bg-center p-6 text-white overflow-hidden shadow-md hover:shadow-lg transition-shadow"
           style={{
+            /* rounded-[20px] */
             backgroundImage: `linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.3)), url(${banner})`,
           }}
         >
@@ -64,7 +66,7 @@ const PostCard = ({ content, author, style }) => {
           <p className="text-lg line-clamp-2">{des}</p>
 
           <div className="flex gap-4 mt-4">
-            <span className="btn-light py-1 px-4">{tags[0]}</span>
+            <span className="tag py-1 px-4">{tags[0]}</span>
             <span className="ml-3 flex items-center gap-2 text-light-grey">
               <span className="fi fi-br-heart -mb-1"></span>
               {total_likes}
@@ -79,8 +81,9 @@ const PostCard = ({ content, author, style }) => {
     return (
       <Link
         to={`/post/${id}`}
-        className="relative flex h-full flex-col border border-grey rounded-[14px] overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+        className="relative flex h-full flex-col border border-grey overflow-hidden shadow-md hover:shadow-lg transition-shadow"
       >
+        {/* rounded-[14px] */}
         <div className="relative w-full h-36">
           <img
             src={banner}
@@ -109,7 +112,7 @@ const PostCard = ({ content, author, style }) => {
             <div className="flex items-center gap-1 text-dark-grey">
               <span className="fi fi-br-heart -mb-1"></span>
               <span className="text-xs mx-1">{total_likes}</span>
-              <span className="btn-light text-black py-1 ml-2 px-3 rounded-full text-xs">{tags[0]}</span>
+              <span className="tag text-black py-1 ml-2 px-3 rounded-full text-xs">{tags[0]}</span>
 
             </div>
             <div className="flex">
@@ -129,7 +132,8 @@ const PostCard = ({ content, author, style }) => {
         to={`/post/${id}`}
         className="relative flex flex-col gap-8 border-b border-grey pb-5 mb-4"
       >
-        <div className="relative z-10 p-6 rounded-[20px] overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+        <div className="relative z-10 p-6 overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+          {/* rounded-[20px] */}
           <div className="flex gap-2 items-center mb-4">
             <img src={profile_img} alt="author avatar" className="w-6 h-6 rounded-full" />
             <p className="lime-clamp-1">{fullname}</p>
@@ -142,7 +146,7 @@ const PostCard = ({ content, author, style }) => {
           <p className="text-lg line-clamp-2">{des}</p>
 
           <div className="flex gap-4 mt-4">
-            <span className="btn-light py-1 px-4">{tags[0]}</span>
+            <span className="tag py-1 px-4">{tags[0]}</span>
             <span className="ml-3 flex items-center gap-2 text-dark-grey">
               <span className="fi fi-br-heart -mb-1"></span>
               {total_likes}

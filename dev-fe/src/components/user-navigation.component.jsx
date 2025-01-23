@@ -22,26 +22,28 @@ const UserNavigationPanel = () => {
       transition={{ duration: 0.2 }}
     >
       <div className="bg-white absolute right-0 border border-grey w-60 duration-200">
-        <Link to="/editor" className="flex gap-2 link md:hidden pl-8 py-4">
+        <Link to="/editor" className="flex gap-2 link md:hidden py-4 pl-5 hover:bg-black hover:text-white selector-white">
           <span className="fi fi-rr-file-edit icon"></span>
           <p>Post</p>
         </Link>
-        <Link to={`/user/${username}`} className="link py-4">
-          Profile
+        <Link to={`/user/${username}`} className="flex gap-2 link py-4 pl-5 hover:bg-black hover:text-white selector-white">
+          <span className="fi fi-rr-user icon"></span>
+          <p>Profile</p>
         </Link>
-        <Link to="/dashboard/posts" className="link py-4">
-          Dashboard
+        <Link to="/dashboard/posts" className="flex gap-2 link py-4 pl-5 hover:bg-black hover:text-white selector-white">
+          <span className="fi fi-rr-chart-simple icon"></span>
+          <p>Dashboard</p>
         </Link>
-        <Link to="/settings/edit-profile" className="link py-4">
-          Settings
+        <Link to="/settings/edit-profile" className="flex gap-2 link py-4 pl-5 hover:bg-black hover:text-white selector-white">
+          <span className="fi fi-rr-settings icon"></span>
+          <p>Settings</p>
         </Link>
 
         <span className="absolute border-t border-grey w-[100%]">
         </span>
 
-        <button className="text-left p-4 hover:bg-grey w-full pl-8 py-4" onClick={signOutUser}>
+        <button className="text-left p-4 w-full pl-8 py-4 hover:bg-black hover:text-white selector-white" onClick={signOutUser}>
           <h1 className="font-bold text-xl">Sign Out</h1>
-          <p className="text-dark-grey">@{username}</p>
         </button>
 
       </div>

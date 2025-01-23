@@ -263,13 +263,13 @@ server.post("/all-latest-posts-count", (req, res) => {
     })
 })
 
-// Trending Posts
-server.get("/trending-posts", (req, res) => {
+// Popular Posts
+server.get("/popular-posts", (req, res) => {
   Post.find({ draft: false })
     .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
     .sort({ "activity.total_read": -1, "activity.total_likes": -1, "publishedAt": -1 })
     .select("post_id title publishedAt -_id")
-    .limit(5)
+    .limit(10)
     .then(posts => {
       return res.status(200).json({ posts })
     })
