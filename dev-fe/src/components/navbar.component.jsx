@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import logo from "../imgs/logo.svg";
 import { UserContext } from '../App';
 import UserNavigationPanel from "./user-navigation.component";
@@ -11,6 +11,8 @@ const Navbar = () => {
 
   let navigate = useNavigate();
 
+  const location = useLocation();
+  const currentPath = location.pathname;
 
   const { userAuth, userAuth: { access_token, profile_img } } = useContext(UserContext);
 
@@ -51,7 +53,7 @@ const Navbar = () => {
             <span className="fi fi-rr-search text-xl -mb-1"></span>
           </button>
 
-          <Link to="/editor" className="hidden md:flex h gap-2 link">
+          <Link to="/editor" className="hidden md:flex md:items-center selector-white h-[38px] px-6 gap-2 link hover:bg-royalblue/80 hover:text-white">
             <span className="fi fi-rr-file-edit icon"></span>
             <p>Post</p>
           </Link>
@@ -79,12 +81,24 @@ const Navbar = () => {
               </>
               :
               <>
-                <Link className="btn-dark py-2" to="/signin">
-                  Sign In
-                </Link>
-                <Link className="btn-light py-2 hidden md:block" to="/signup">
-                  Sign Up
-                </Link>
+                {currentPath === "/signup" ? (
+                  <Link className="btn-dark py-2 md:block" to="/signin">
+                    Sign In
+                  </Link>
+                ) : currentPath === "/signin" ? (
+                  <Link className="btn-light py-2 md:block" to="/signup">
+                    Sign Up
+                  </Link>
+                ) :
+                  <>
+                    <Link className="btn-dark py-2 md:block" to="/signin">
+                      Sign In
+                    </Link>
+                    <Link className="btn-light py-2 hidden md:block" to="/signup">
+                      Sign Up
+                    </Link>
+                  </>
+                }
               </>
           }
 

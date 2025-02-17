@@ -7,7 +7,7 @@ import axios from "axios";
 
 const PostInteraction = () => {
 
-  let { post, post: { _id, title, banner, post_id, activity, activity: { total_likes, total_comments }, author: { personal_info: { username: author_username } } }, setPost, isLikedByUser, setIsLikedByUser } = useContext(PostContext)
+  let { post, post: { _id, title, banner, post_id, activity, activity: { total_likes, total_comments }, author: { personal_info: { username: author_username } } }, setPost, isLikedByUser, setIsLikedByUser, setCommentsWrapper } = useContext(PostContext)
 
   let { userAuth: { username, access_token } } = useContext(UserContext);
 
@@ -68,7 +68,9 @@ const PostInteraction = () => {
           </div>
 
           <div className="flex gap-3 items-center">
-            <button className="w-10 h-10 rounded-full flex items-center justify-center bg-grey">
+            <button className="w-10 h-10 rounded-full flex items-center justify-center bg-grey"
+              onClick={() => setCommentsWrapper(preVal => !preVal)}
+            >
               <span className="fi fi-br-comment-dots"></span>
             </button>
             <p className="text-xl text-dark-grey">{total_comments}</p>

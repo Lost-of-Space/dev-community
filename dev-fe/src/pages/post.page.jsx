@@ -7,6 +7,7 @@ import { getDay } from "../common/date";
 import PostInteraction from "../components/post-interaction.component";
 import PostCard from "../components/post-card.component";
 import PostContent from "../components/post-content.component";
+import CommentsContainer from "../components/comments.component";
 
 export const postStructure = {
   title: '',
@@ -27,6 +28,8 @@ const PostPage = () => {
   const [loading, setLoading] = useState(true);
   const [similarPosts, setSimilarPosts] = useState(null);
   const [isLikedByUser, setIsLikedByUser] = useState(false);
+  const [commentsWrapper, setCommentsWrapper] = useState(false);
+  const [totalParentCommentsLoaded, setTotalParentCommentsLoaded] = useState(0);
 
   let { title, content, banner, author: { personal_info: { fullname, username: author_username, profile_img } }, publishedAt } = post;
 
@@ -58,6 +61,9 @@ const PostPage = () => {
     setPost(postStructure);
     setSimilarPosts(null);
     setLoading(true);
+    setIsLikedByUser(false);
+    setCommentsWrapper(false);
+    setTotalParentCommentsLoaded(0);
   }
 
   return (
@@ -65,7 +71,9 @@ const PostPage = () => {
       {
         loading ? <Loader />
           :
-          <PostContext.Provider value={{ post, setPost, isLikedByUser, setIsLikedByUser }}>
+          <PostContext.Provider value={{ post, setPost, isLikedByUser, setIsLikedByUser, commentsWrapper, setCommentsWrapper, totalParentCommentsLoaded, setTotalParentCommentsLoaded }}>
+            <CommentsContainer />
+
             <div className="max-w-[900px] center py-10 max-lg:px-[5vw]">
               <img src={banner} className="aspect-video" alt="post banner" />
 
