@@ -13,6 +13,7 @@ import { getAuth } from "firebase-admin/auth"
 import User from './Schema/User.js';
 import Post from './Schema/Post.js';
 import Notification from './Schema/Notification.js';
+import Comment from './Schema/Comment.js';
 
 
 const server = express();
@@ -516,6 +517,63 @@ server.post("/isliked-by-user", verifyJWT, (req, res) => {
   Notification.exists({ user: user_id, type: "like", post: _id })
     .then(result => {
       return res.status(200).json({ result })
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message })
+    })
+})
+
+server.post("/add-comment", verifyJWT, (req, res) => {
+  let user_id = req.user;
+
+  let { _id, comment, post_author } = req.body;
+
+  if (!comment.length) {
+    return res.status(403).json({ error: 'Comment cannot be empty.' });
+  }
+
+  let commentObj = new Comment({
+    post_id: _id, post_author, comment, commented_by: user_id
+  })
+
+  commentObj.save().then(commentFile => {
+    let { comment, commentedAt, children } = commentFile;
+
+    Post.findOneAndUpdate({ _id }, { $push: { "comments": commentFile._id }, $inc: { "activity.total_comments": 1 }, "activity.total_parent_comments": 1 })
+      .then(post => { console.log('comment added.') })
+
+    let notificationObj = {
+      type: "comment",
+      post: _id,
+      notification_for: post_author,
+      user: user_id,
+      comment: commentFile._id
+    }
+
+    new Notification(notificationObj).save().then(notification => console.log('notification created.'))
+
+    return res.status(200).json({
+      comment, commentedAt, _id: commentFile._id, user_id, children
+    })
+
+  })
+
+})
+
+server.post("/get-post-comments", (req, res) => {
+  let { post_id, skip } = req.body;
+
+  let maxLimit = 5;
+
+  Comment.find({ post_id, isReply: false })
+    .populate("commented_by", "personal_info.username personal_info.fullname personal_info.profile_img")
+    .skip(skip)
+    .limit(maxLimit)
+    .sort({
+      'commentedAt': -1
+    })
+    .then(comment => {
+      return res.status(200).json(comment)
     })
     .catch(err => {
       return res.status(500).json({ error: err.message })

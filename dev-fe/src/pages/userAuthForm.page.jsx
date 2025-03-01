@@ -113,7 +113,7 @@ const UserAuthForm = ({ type }) => {
       <Navigate to="/" />
       :
       <AnimationWrapper keyValue={type} duration="2">
-        <section className="h-cover flex items-center justify-center">
+        <section className="h-cover flex items-center justify-center relative overflow-hidden">
           <Toaster />
 
           <div className={"rounded-full absolute z-20 flex items-center justify-center select-none max-md:hidden max-lg:hidden h-[160%] w-[85%] " + (type == "sign-in" ? "animate-slideToLeft -right-[40%]  bg-gradient-to-tl from-50%" : "animate-slideToRight -left-[40%]  bg-gradient-to-br from-50%") + " from-black to-black/60"}>

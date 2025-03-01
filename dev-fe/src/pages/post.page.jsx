@@ -8,6 +8,7 @@ import PostInteraction from "../components/post-interaction.component";
 import PostCard from "../components/post-card.component";
 import PostContent from "../components/post-content.component";
 import CommentsContainer from "../components/comments.component";
+import { fetchComments } from "../components/comments.component";
 
 export const postStructure = {
   title: '',
@@ -35,7 +36,9 @@ const PostPage = () => {
 
   const fetchPost = () => {
     axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/get-post", { post_id })
-      .then(({ data: { post } }) => {
+      .then(async ({ data: { post } }) => {
+
+        post.comments = await fetchComments({ post_id: post._id, setParentCommentCountFunc: setTotalParentCommentsLoaded })
 
         setPost(post);
 
@@ -43,6 +46,7 @@ const PostPage = () => {
           .then(({ data }) => {
             setSimilarPosts(data.posts);
           })
+
         setLoading(false);
       })
       .catch(err => {

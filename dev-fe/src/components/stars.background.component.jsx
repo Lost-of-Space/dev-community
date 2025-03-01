@@ -6,7 +6,7 @@ const FallingStars = ({ symbols = ["★", "✦"], chance = [0.6, 0.4], starSize 
   useEffect(() => {
     const createStar = () => {
       const id = Math.random().toString(36).substr(2, 9);
-      const left = Math.random() * 100 + "vw";
+      const left = Math.random() * 99 + "vw";
       const size = Math.random() * starSize + "px";
       const duration = Math.random() * 3 + 2 + "s";
 
@@ -40,7 +40,7 @@ const FallingStars = ({ symbols = ["★", "✦"], chance = [0.6, 0.4], starSize 
   }, []);
 
   return (
-    <div className="absolute inset-0 overflow-hidden">
+    <div className="absolute inset-0 overflow-hidden select-none content-center">
       {stars.map((star) => (
         <div
           key={star.id}
