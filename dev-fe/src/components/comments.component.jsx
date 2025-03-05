@@ -30,9 +30,13 @@ export const fetchComments = async ({ skip = 0, post_id, setParentCommentCountFu
 
 const CommentsContainer = () => {
 
-  let { post: { title, comments: { results: commentsArr } }, commentsWrapper, setCommentsWrapper } = useContext(PostContext)
+  let { post, post: { _id, title, comments: { results: commentsArr }, activity: { total_parent_comments } }, commentsWrapper, setCommentsWrapper, totalParentCommentsLoaded, setTotalParentCommentsLoaded, setPost } = useContext(PostContext)
 
-  //console.log(commentsArr);
+  const loadMoreComments = async () => {
+    let newCommentsArr = await fetchComments({ skip: totalParentCommentsLoaded, post_id: _id, setParentCommentCountFunc: setTotalParentCommentsLoaded, comment_array: commentsArr })
+
+    setPost({ ...post, comments: newCommentsArr })
+  }
 
   return (
     <div className={"max-sm:w-full fixed " + (commentsWrapper ? "top-0 sm:right-0" : "top-[100%] sm:right-[-100%]") + " duration-700 max-sm:right-0 sm:top-0 w-[30%] min-w-[350px] h-full z-[110] bg-white shadow-2xl p-8 px-16 overflow-y-auto overflow-x-hidden"}>
@@ -60,6 +64,15 @@ const CommentsContainer = () => {
           })
           :
           <NoDataMessage message="No Comments Yet" />
+      }
+
+      {
+        total_parent_comments > totalParentCommentsLoaded ?
+          <button onClick={loadMoreComments} className="text-dark-grey p-2 px-3 hover:bg-grey/30 items-center gap-2">
+            Load More
+          </button>
+          :
+          ""
       }
 
     </div>
