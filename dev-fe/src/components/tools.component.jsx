@@ -100,5 +100,5 @@ export const tools = {
     inlineToolbar: true,
   },
   marker: Marker,
-  inlineCode: InlineCode,
+  inlineCode: InlineCode
 };

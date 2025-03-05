@@ -34,6 +34,31 @@ export default {
                 inter: ["'Inter'", "sans-serif"],
                 gelasio: ["'Gelasio'", "serif"]
             },
+            keyframes: {
+                slideToLeft: {
+                    '0%': { transform: 'translateX(100%)' },
+                    '100%': { transform: 'translateX(0)' },
+                },
+                slideToRight: {
+                    '0%': { transform: 'translateX(-100%)' },
+                    '100%': { transform: 'translateX(0)' },
+                },
+                slideBackLeft: {
+                    '0%': { transform: 'translateX(0)' },
+                    '100%': { transform: 'translateX(-100%)' },
+                },
+                slideBackRight: {
+                    '0%': { transform: 'translateX(0)' },
+                    '100%': { transform: 'translateX(100%)' },
+                },
+            },
+            animation: {
+                slideToLeft: 'slideToLeft 0.7s ease',
+                slideToRight: 'slideToRight 0.7s ease',
+                slideBackLeft: 'slideBackLeft 0.7s ease',
+                slideBackRight: 'slideBackRight 0.7s ease',
+            },
+
         },
 
     },

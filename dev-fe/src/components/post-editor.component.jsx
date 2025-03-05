@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import logo from "../imgs/logo.svg";
 import AnimationWrapper from "../common/page-animation";
 import defaultBanner from "../imgs/default_banner.png"
@@ -16,19 +16,20 @@ const PostEditor = () => {
   let { post, post: { title, banner, content, tags, des }, setPost, textEditor, setTextEditor, setEditorState } = useContext(EditorContext)
 
   let { userAuth: { access_token } } = useContext(UserContext);
+  let { post_id } = useParams();
 
   let navigate = useNavigate();
 
-  //useEffect
+
   useEffect(() => {
-    //  if (!textEditor.isReady) {
-    setTextEditor(new EditorJS({
-      holder: "textEditor",
-      data: content,
-      tools: tools,
-      placeholder: "Type here something..."
-    }))
-    //   }
+    if (!textEditor.isReady) {
+      setTextEditor(new EditorJS({
+        holder: "textEditor",
+        data: Array.isArray(content) ? content[0] : content,
+        tools: tools,
+        placeholder: "Type here anything..."
+      }))
+    }
   }, [])
 
   const [bannerImg, setBannerImg] = useState(defaultBanner);
@@ -121,7 +122,7 @@ const PostEditor = () => {
           title, banner, des, content, tags, draft: true
         }
         //sends access token to confirm authorization
-        axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/create-post", postObj, {
+        axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/create-post", { ...postObj, id: post_id }, {
           headers: {
             'Authorization': `Bearer ${access_token}`
           }

@@ -12,6 +12,8 @@ import { getAuth } from "firebase-admin/auth"
 //schema
 import User from './Schema/User.js';
 import Post from './Schema/Post.js';
+import Notification from './Schema/Notification.js';
+import Comment from './Schema/Comment.js';
 
 
 const server = express();
@@ -262,13 +264,13 @@ server.post("/all-latest-posts-count", (req, res) => {
     })
 })
 
-// Trending Posts
-server.get("/trending-posts", (req, res) => {
+// Popular Posts
+server.get("/popular-posts", (req, res) => {
   Post.find({ draft: false })
     .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
     .sort({ "activity.total_read": -1, "activity.total_likes": -1, "publishedAt": -1 })
     .select("post_id title publishedAt -_id")
-    .limit(5)
+    .limit(10)
     .then(posts => {
       return res.status(200).json({ posts })
     })
@@ -277,22 +279,51 @@ server.get("/trending-posts", (req, res) => {
     })
 })
 
-// Searching
-server.post('/search-posts', (req, res) => {
+//Get Posts
+server.post("/get-post", (req, res) => {
+  let { post_id, draft, mode } = req.body;
 
-  let { tag, query, author, page } = req.body;
+  let incrementVal = mode != 'edit' ? 1 : 0;
+
+  Post.findOneAndUpdate({ post_id }, { $inc: { "activity.total_reads": incrementVal } })
+    .populate("author", "personal_info.fullname personal_info.username personal_info.profile_img")
+    .select("title des content banner activity publishedAt post_id tags")
+    .then(post => {
+
+      User.findOneAndUpdate({ "personal_info.username": post.author.personal_info.username }, {
+        $inc: { "account_info.total_reads": incrementVal }
+      })
+        .catch(err => {
+          return res.status(500).json({ error: err.message });
+        })
+
+      if (post.draft && !draft) {
+        return res.status(500).json({ error: 'You can not access a draft post' })
+      }
+      return res.status(200).json({ post });
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message });
+    })
+
+})
+
+// Searching
+server.post("/search-posts", (req, res) => {
+
+  let { tag, query, author, page, limit, eliminate_post } = req.body;
 
   let findQuery;
 
   if (tag) {
-    findQuery = { tags: tag, draft: false };
+    findQuery = { tags: tag, draft: false, post_id: { $ne: eliminate_post } };
   } else if (query) {
     findQuery = { draft: false, title: new RegExp(query, 'i') }
   } else if (author) {
     findQuery = { author, draft: false }
   }
 
-  let maxLimit = 1; // The limit of posts that comes from server
+  let maxLimit = limit ? limit : 2; // The limit of posts that comes from server
 
   Post.find(findQuery)
     .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
@@ -382,7 +413,7 @@ server.post('/create-post', verifyJWT, (req, res) => {
 
   let authorId = req.user;
 
-  let { title, des, banner, tags, content, draft } = req.body;
+  let { title, des, banner, tags, content, draft, id } = req.body;
 
   if (!title.length) {
     return res.status(403).json({ error: "You must provide a title." });
@@ -408,31 +439,231 @@ server.post('/create-post', verifyJWT, (req, res) => {
 
   tags = tags.map(tag => tag.toLowerCase());
 
-  let post_id = title.replace(/[^a-zA-Z0-9]/g, ' ').replace(/\s+/g, "-").trim() + "-" + nanoid();
+  let post_id = id || title.replace(/[^a-zA-Z0-9]/g, ' ').replace(/\s+/g, "-").trim() + "-" + nanoid();
 
-  let post = new Post({
-    title, des, banner, content, tags, author: authorId, post_id, draft: Boolean(draft)
-  })
-
-  post.save().then(post => {
-
-    // test if post draft == true or false, and updating total posts count
-    let incrementVal = draft ? 0 : 1;
-    User.findOneAndUpdate({ _id: authorId }, { $inc: { "account_info.total_posts": incrementVal }, $push: { "posts": post._id } })
-
-      .then(user => {
-        return res.status(200).json({ id: post.post_id })
+  if (id) {
+    Post.findOneAndUpdate({ post_id }, { title, des, banner, content, tags, draft: draft ? draft : false })
+      .then(() => {
+        return res.status(200).json({ id: post_id })
       })
-
       .catch(err => {
-        return res.status(500).json({ error: "Failed tp update total posts number" })
+        return res.status(500).json({ error: err.message })
       })
-  })
+  }
+
+  else {
+    let post = new Post({
+      title, des, banner, content, tags, author: authorId, post_id, draft: Boolean(draft)
+    })
+
+    post.save().then(post => {
+
+      // test if post draft == true or false, and updating total posts count
+      let incrementVal = draft ? 0 : 1;
+      User.findOneAndUpdate({ _id: authorId }, { $inc: { "account_info.total_posts": incrementVal }, $push: { "posts": post._id } })
+
+        .then(user => {
+          return res.status(200).json({ id: post.post_id })
+        })
+
+        .catch(err => {
+          return res.status(500).json({ error: "Failed tp update total posts number" })
+        })
+    })
+      .catch(err => {
+        return res.status(500).json({ error: err.message })
+      })
+  }
+})
+
+server.post("/like-post", verifyJWT, (req, res) => {
+  let user_id = req.user;
+
+  let { _id, isLikedByUser } = req.body;
+
+  let incrementVal = !isLikedByUser ? 1 : -1;
+
+  Post.findOneAndUpdate({ _id }, { $inc: { "activity.total_likes": incrementVal } })
+    .then(post => {
+      if (!isLikedByUser) {
+        let like = new Notification({
+          type: "like",
+          post: _id,
+          notification_for: post.author,
+          user: user_id
+        })
+
+        like.save().then(notification => {
+          return res.status(200).json({ liked_by_user: true })
+        })
+      } else {
+        Notification.findOneAndDelete({ user: user_id, post: _id, type: "like" })
+          .then(data => {
+            return res.status(200).json({ liked_by_user: false })
+          })
+
+          .catch(err => {
+            return res.status(500).json({ error: err.message })
+          })
+      }
+    })
+})
+
+server.post("/isliked-by-user", verifyJWT, (req, res) => {
+  let user_id = req.user;
+
+  let { _id } = req.body;
+
+  Notification.exists({ user: user_id, type: "like", post: _id })
+    .then(result => {
+      return res.status(200).json({ result })
+    })
     .catch(err => {
       return res.status(500).json({ error: err.message })
     })
+})
+
+server.post("/add-comment", verifyJWT, (req, res) => {
+  let user_id = req.user;
+
+  let { _id, comment, post_author, replying_to } = req.body;
+
+  if (!comment.length) {
+    return res.status(403).json({ error: 'Comment cannot be empty.' });
+  }
+
+  let commentObj = {
+    post_id: _id, post_author, comment, commented_by: user_id
+  }
+
+  if (replying_to) {
+    commentObj.parent = replying_to;
+    commentObj.isReply = true;
+  }
+
+  new Comment(commentObj).save().then(async commentFile => {
+    let { comment, commentedAt, children } = commentFile;
+
+    Post.findOneAndUpdate({ _id }, { $push: { "comments": commentFile._id }, $inc: { "activity.total_comments": 1, "activity.total_parent_comments": replying_to ? 0 : 1 }, })
+      .then(post => { console.log('comment added.') })
+
+    let notificationObj = {
+      type: replying_to ? "reply" : "comment",
+      post: _id,
+      notification_for: post_author,
+      user: user_id,
+      comment: commentFile._id
+    }
+
+    if (replying_to) {
+      notificationObj.replied_on_comment = replying_to;
+
+      await Comment.findOneAndUpdate({ _id: replying_to }, { $push: { children: commentFile._id } })
+        .then(replyingToCommentDoc => { notificationObj.notification_for = replyingToCommentDoc.commented_by })
+
+    }
+
+    new Notification(notificationObj).save().then(notification => console.log('notification created.'))
+
+    return res.status(200).json({
+      comment, commentedAt, _id: commentFile._id, user_id, children
+    })
+
+  })
 
 })
+
+server.post("/get-post-comments", (req, res) => {
+  let { post_id, skip } = req.body;
+
+  let maxLimit = 5;
+
+  Comment.find({ post_id, isReply: false })
+    .populate("commented_by", "personal_info.username personal_info.fullname personal_info.profile_img")
+    .skip(skip)
+    .limit(maxLimit)
+    .sort({
+      'commentedAt': -1
+    })
+    .then(comment => {
+      return res.status(200).json(comment)
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message })
+    })
+})
+
+server.post("/get-replies", (req, res) => {
+  let { _id, skip } = req.body;
+
+  let maxLimit = 5;
+  Comment.findOne({ _id })
+    .populate({
+      path: "children",
+      option: {
+        limit: maxLimit,
+        skip: skip,
+        sort: { 'commentedAt': -1 }
+      },
+      populate: {
+        path: 'commented_by',
+        select: "personal_info.profile_img personal_info.fullname personal_info.username"
+      },
+      select: "-post_id -updatedAt"
+    })
+    .select("children")
+    .then(doc => {
+      return res.status(200).json({ replies: doc.children })
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message })
+    })
+})
+
+
+const deleteComments = (_id) => {
+  Comment.findOneAndDelete({ _id })
+    .then(comment => {
+      if (comment.parent) {
+        Comment.findOneAndUpdate({ _id: comment.parent }, { $pull: { children: _id } })
+          .then(data => console.log('comment delete from parent'))
+          .catch(err => console.log(err));
+      }
+
+      Notification.findOneAndDelete({ comment: _id }).then(notification => console.log('comment notification removed.'))
+      Notification.findOneAndDelete({ reply: _id }).then(notification => console.log('reply notification removed.'))
+
+      Post.findOneAndUpdate({ _id: comment.post_id }, { $pull: { comments: _id }, $inc: { "activity.total_comments": -1 }, "activity.total_parent_comments": comment.parent ? 0 : -1 })
+        .then(post => {
+          if (comment.children.length) {
+            comment.children.map(replies => {
+              deleteComments(replies)
+            })
+          }
+        })
+        .catch(err => {
+          console.log(err.message);
+        })
+    })
+}
+
+server.post("/delete-comment", verifyJWT, (req, res) => {
+  let user_id = req.user;
+  let { _id } = req.body;
+
+  Comment.findOne({ _id })
+    .then(comment => {
+      if (user_id == comment.commented_by || user_id == comment.post_author) {
+        deleteComments(_id);
+
+        return res.status(200).json({ status: 'done' })
+
+      } else {
+        return res.status(403).json({ error: "Do not have permission." })
+      }
+    })
+})
+
 
 server.listen(PORT, () => {
   console.log('Listening on port: ' + PORT);

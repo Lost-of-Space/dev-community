@@ -11,6 +11,7 @@
 @layer components {
     * {
         @apply m-0 p-0 box-border text-base outline-black/30 duration-100;
+        /*black/30*/
     }
 
     html {
@@ -38,7 +39,7 @@
     }
 
     .navbar {
-        @apply z-10 sticky top-0 flex items-center gap-12 w-full px-[5vw] py-5 h-[80px] border-b border-grey bg-white;
+        @apply z-10 sticky top-0 flex items-center gap-12 w-full px-[5vw] py-5 h-[80px] border-b border-grey bg-white bg-opacity-70 backdrop-blur-lg;
     }
 
     .h-cover {
@@ -49,20 +50,150 @@
         @apply block mx-auto;
     }
 
+    .search-box {
+        @apply outline-none select-none bg-grey p-3 pl-6 pr-[12%] border-[3px] border-grey focus:border-black hover:border-black transition-colors duration-150 placeholder:text-dark-grey md:pl-12
+    }
+
+    .user-nav-btn:hover::before {
+        @apply opacity-100
+    }
+
+    /* Light button */
     .btn-dark {
-        @apply whitespace-nowrap bg-black text-white rounded-full py-3 px-6 text-xl capitalize hover:bg-opacity-80;
+        @apply relative select-none whitespace-nowrap bg-black text-white py-3 px-6 text-xl capitalize hover:bg-opacity-80;
     }
 
+    .btn-dark::before {
+        @apply content-[""] absolute opacity-0 h-6 w-2 border-white border-t-2 border-l-2 left-2 top-2 transition-opacity
+    }
+
+    .btn-dark::after {
+        @apply content-[""] absolute opacity-0 h-6 w-2 border-white border-b-2 border-r-2 right-2 bottom-2 transition-opacity
+    }
+
+    .btn-dark:hover::before,
+    .btn-dark:hover::after {
+        @apply opacity-100
+    }
+
+    /* Light button */
     .btn-light {
-        @apply btn-dark bg-grey text-black;
+        @apply relative select-none whitespace-nowrap py-3 px-6 text-xl capitalize hover:bg-opacity-80 bg-grey text-black;
     }
 
+    .btn-light::before {
+        @apply content-[""] absolute opacity-0 h-6 w-2 border-black border-t-2 border-l-2 left-2 top-2 transition-opacity
+    }
+
+    .btn-light::after {
+        @apply content-[""] absolute opacity-0 h-6 w-2 border-black border-b-2 border-r-2 right-2 bottom-2 transition-opacity
+    }
+
+    .btn-light:hover::before,
+    .btn-light:hover::after {
+        @apply opacity-100
+    }
+
+
+    /* Small button */
     .btn-mini {
-        @apply bg-grey text-black rounded-[10px] flex items-center justify-center hover:bg-dark-grey/10 active:bg-dark-grey/20;
+        @apply select-none bg-grey relative text-black flex items-center justify-center hover:bg-dark-grey/10 active:bg-dark-grey/20 active:scale-90;
     }
 
+    .btn-mini::before {
+        @apply content-[""] absolute opacity-0 h-2 w-2 border-black border-t-2 border-l-2 left-1 top-1 transition-opacity
+    }
+
+    .btn-mini::after {
+        @apply content-[""] absolute opacity-0 h-2 w-2 border-black border-b-2 border-r-2 right-1 bottom-1 transition-opacity
+    }
+
+    .btn-mini:hover::before {
+        @apply opacity-100
+    }
+
+    .btn-mini:hover::after {
+        @apply opacity-100
+    }
+
+    .btn-mini:active::before,
+    .btn-mini:active::after {
+        @apply m-[2px] opacity-100 transition-transform duration-200
+    }
+
+
+    /* Tag */
+    .tag {
+        @apply select-none p-3 bg-grey px-6 capitalize text-black;
+    }
+
+    .tag-btn {
+        @apply select-none relative p-3 bg-grey text-black px-6 capitalize;
+    }
+
+    .tag-btn::before {
+        @apply content-[""] absolute opacity-0 h-6 w-2 border-black border-t-2 border-l-2 left-2 top-2 transition-opacity
+    }
+
+    .tag-btn::after {
+        @apply content-[""] absolute opacity-0 h-6 w-2 border-black border-b-2 border-r-2 right-2 bottom-2 transition-opacity
+    }
+
+    .tag-btn:hover::before,
+    .tag-btn:hover::after {
+        @apply opacity-100
+    }
+
+    .tag-btn-active {
+        @apply relative p-3 text-white bg-black px-6 capitalize;
+    }
+
+    .tag-btn-active::before {
+        @apply content-[""] opacity-100 absolute h-8 w-2 border-white border-y-2 border-l-2 left-2 top-2 max-sm:top-[10%]
+    }
+
+    .tag-btn-active::after {
+        @apply content-[""] opacity-100 absolute h-8 w-2 border-white border-y-2 border-r-2 right-2 bottom-2 max-sm:bottom-[10%]
+    }
+
+
+    .selector {
+        @apply relative;
+    }
+
+    .selector::before {
+        @apply content-[""] absolute opacity-0 h-6 w-2 border-black border-t-2 border-l-2 left-2 top-2 transition-opacity
+    }
+
+    .selector::after {
+        @apply content-[""] absolute opacity-0 h-6 w-2 border-black border-b-2 border-r-2 right-2 bottom-2 transition-opacity
+    }
+
+    .selector:hover::before,
+    .selector:hover::after {
+        @apply opacity-100
+    }
+
+    .selector-white {
+        @apply relative;
+    }
+
+    .selector-white::before {
+        @apply content-[""] absolute opacity-0 h-6 w-2 border-white border-t-2 border-l-2 left-2 top-2 transition-opacity
+    }
+
+    .selector-white::after {
+        @apply content-[""] absolute opacity-0 h-6 w-2 border-white border-b-2 border-r-2 right-2 bottom-2 transition-opacity
+    }
+
+    .selector-white:hover::before,
+    .selector-white:hover::after {
+        @apply opacity-100
+    }
+
+    /* Input box */
     .input-box {
-        @apply w-[100%] rounded-md p-4 bg-grey pl-12 border border-grey focus:bg-transparent placeholder:text-black placeholder:opacity-60;
+        @apply w-[100%] p-4 bg-grey pl-12 border-[3px] border-grey outline-none focus:border-black focus:bg-transparent placeholder:text-black placeholder:opacity-60;
     }
 
     input:disabled,
@@ -79,7 +210,7 @@
     }
 
     .link {
-        @apply text-dark-grey hover:text-black hover:bg-grey p-3 px-4 block opacity-75;
+        @apply text-dark-grey hover:text-black hover:bg-grey p-3 px-4 block opacity-80;
     }
 
     .hide {
@@ -118,16 +249,16 @@
         @apply text-purple underline hover:opacity-50;
     }
 
-    .tag {
-        @apply p-3 bg-grey rounded-full px-6 capitalize;
-    }
-
     .post-title {
         @apply text-2xl font-medium leading-7 line-clamp-3 sm:line-clamp-2;
     }
 
     .post-index {
         @apply text-4xl sm:text-3xl lg:text-5xl font-bold text-grey leading-none;
+    }
+
+    .paragraph a {
+        @apply text-royalblue hover:underline;
     }
 }
 
