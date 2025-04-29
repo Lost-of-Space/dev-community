@@ -6,7 +6,7 @@ import { nanoid } from 'nanoid';//id generator
 import jwt from 'jsonwebtoken'
 import cors from 'cors';
 import admin from "firebase-admin";
-import serviceAccountKey from "./dev-community-7f3b8-firebase-adminsdk-lzctm-9acd813bc6.json" assert {type: "json"}
+import serviceAccountKey from "./dev-community-7f3b8-firebase-adminsdk-lzctm-9acd813bc6.json" with {type: "json"}
 import { getAuth } from "firebase-admin/auth"
 
 //schema
@@ -600,7 +600,7 @@ server.post("/get-replies", (req, res) => {
   Comment.findOne({ _id })
     .populate({
       path: "children",
-      option: {
+      options: {
         limit: maxLimit,
         skip: skip,
         sort: { 'commentedAt': -1 }
