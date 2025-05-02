@@ -1,43 +1,51 @@
 # Dev-Space
 
-Dev-Space — це вебзастосунок, що складається з двох модулів:
-- **server/** (бекенд)
-- **dev-fe/** (фронтенд)
+Dev-Space is a web application consisting of two modules:
 
-## Запуск проєкту
+* **server/** (backend)
+* **dev-fe/** (frontend)
 
-Щоб підняти проєкт для розробки, необхідно створити два `.env` файли.
+## Project Setup
 
-### Налаштування середовища
+To run the project in development mode, you need to create two `.env` files.
+
+### Environment Configuration
 
 #### `server/.env`
+
 ```ini
 DB_LOCATION=
 SECRET_ACCESS_KEY=
 ```
 
 #### `dev-fe/.env`
+
 ```ini
 VITE_SERVER_DOMAIN=http://localhost:3000
 
-# Для вивантаження зображень
+# For image uploading
 VITE_CLOUDINARY_UPLOAD_PRESET=
 VITE_CLOUDINARY_CLOUD_NAME=
 VITE_CLOUDINARY_URL=
 ```
-> **Примітка:** Теоретично можна обійтися лише `VITE_SERVER_DOMAIN`, але це не тестувалося. 😃
 
-## Запуск
+> **Note:** In theory, only `VITE_SERVER_DOMAIN` is required, but this hasn’t been tested. 😃
 
-### Бекенд
-Перейдіть у папку `server/` і виконайте команду:
+## Running the Project
+
+### Backend
+
+Navigate to the `server/` folder and run:
+
 ```sh
 npm install
 npm run dev
 ```
 
-### Фронтенд
-Перейдіть у папку `dev-fe/` і виконайте команду:
+### Frontend
+
+Navigate to the `dev-fe/` folder and run:
+
 ```sh
 npm install
 npm run dev
