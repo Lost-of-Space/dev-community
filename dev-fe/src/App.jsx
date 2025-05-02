@@ -1,5 +1,5 @@
 /*
-pt5
+
 Todo: Add dynamic tag suggestions
 */
 
@@ -14,6 +14,9 @@ import SearchPage from "./pages/search.page";
 import PageNotFound from "./pages/404.page";
 import ProfilePage from "./pages/profile.page";
 import PostPage from "./pages/post.page";
+import SideNavbar from "./components/sidenavbar.component";
+import ChangePasswordPage from "./pages/change-password.page";
+import EditProfilePage from "./pages/edit-profile.page";
 
 export const UserContext = createContext({})
 
@@ -37,6 +40,10 @@ const App = () => {
                 <Route path="/editor/:post_id" element={<Editor />} />
                 <Route path="/" element={<Navbar />}>
                     <Route index element={<HomePage />} />
+                    <Route path="settings" element={<SideNavbar />}>
+                        <Route path="edit-profile" element={<EditProfilePage />} />
+                        <Route path="change-password" element={<ChangePasswordPage />} />
+                    </Route>
                     <Route path="signin" element={<UserAuthForm type="sign-in" />} />
                     <Route path="signup" element={<UserAuthForm type="sign-up" />} />
                     <Route path="search/:query" element={<SearchPage />} />

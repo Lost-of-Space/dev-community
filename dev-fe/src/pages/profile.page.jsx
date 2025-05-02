@@ -17,7 +17,7 @@ export const profileDataStructure = {
   personal_info: {
     fullname: "",
     username: "",
-    profle_img: "",
+    profile_img: "",
     bio: ""
   },
   account_info: {
