@@ -1,14 +1,18 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import logo from "../imgs/logo.svg";
-import { UserContext } from '../App';
+import logo_white from "../imgs/logo_white.svg";
+import { ThemeContext, UserContext } from '../App';
 import UserNavigationPanel from "./user-navigation.component";
 import axios from "axios";
+import { storeInSession } from "../common/session";
 
 const Navbar = () => {
 
   const [searchBoxVisibility, setSearchBoxVisibility] = useState(false)
   const [userNavPanel, setUserNavPanel] = useState(false)
+
+  let { theme, setTheme } = useContext(ThemeContext);
 
   let navigate = useNavigate();
 
@@ -38,12 +42,21 @@ const Navbar = () => {
   }
 
   const handleSearch = (e) => {
-    let query = e.target.value;
+    let query = e.target.value.trim();
 
-    if (e.keyCode == 13 && query.length) {
-      navigate(`/search/${query}`);
+    if (e.keyCode === 13 && query.length) {
+      const tagMatches = query.match(/#[^\s#]+/g);
+
+      if (tagMatches?.length) {
+        // Видаляємо "#" і формуємо рядок типу tag=tag1,tag2
+        const tagQuery = "tag=" + tagMatches.map(tag => tag.slice(1)).join(",");
+        navigate(`/search/${tagQuery}`);
+      } else {
+        navigate(`/search/${query}`);
+      }
     }
-  }
+  };
+
 
   const handleBlur = () => {
     setTimeout(() => {
@@ -51,12 +64,22 @@ const Navbar = () => {
     }, 200);
   }
 
+  const changeTheme = () => {
+    let newTheme = theme == "light" ? "dark" : "light";
+
+    setTheme(newTheme);
+
+    document.body.setAttribute("data-theme", newTheme);
+
+    storeInSession("theme", newTheme);
+  }
+
   return (
     <>
       <nav className="navbar z-[100]">
 
         <Link to="/" className="flex-none w-20">
-          <img src={logo} className="w-full select-none" alt="logo" />
+          <img src={theme == "light" ? logo : logo_white} className="w-full select-none" alt="logo" />
         </Link>
 
         <div className={"absolute bg-white w-full left-0 top-full border-b border-t border-grey py-4 px-[5vw] md:border-0 md:block md:relative md:inset-0 md:p-0 md:w-auto md:show " + (searchBoxVisibility ? "show" : "hide")}>
@@ -74,6 +97,10 @@ const Navbar = () => {
             <span className="fi fi-rr-file-edit icon"></span>
             <p>Post</p>
           </Link>
+
+          <button onClick={changeTheme} className="w-12 h-12 rounded-full bg-grey relative hover:bg-black/10">
+            <span className={"text-2xl block mt-1 fi fi-" + (theme == "light" ? "rr-moon-stars" : "br-sun")}></span>
+          </button>
 
           {
             access_token ?

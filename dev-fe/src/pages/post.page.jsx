@@ -32,7 +32,7 @@ const PostPage = () => {
   const [commentsWrapper, setCommentsWrapper] = useState(false);
   const [totalParentCommentsLoaded, setTotalParentCommentsLoaded] = useState(0);
 
-  let { title, content, banner, author: { personal_info: { fullname, username: author_username, profile_img } }, publishedAt } = post;
+  let { title, tags, content, banner, author: { personal_info: { fullname, username: author_username, profile_img } }, publishedAt } = post;
 
   const fetchPost = () => {
     axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/get-post", { post_id })
@@ -80,6 +80,13 @@ const PostPage = () => {
 
             <div className="max-w-[900px] center py-10 max-lg:px-[5vw]">
               <img src={banner} className="aspect-video" alt="post banner" />
+              <div className="flex flex-wrap mt-5 -mb-6 gap-3">
+                {
+                  tags.map((tag, i) => (
+                    <span key={i} className="tag text-black py-1 px-4 rounded-full text-xs">{tag}</span>
+                  ))
+                }
+              </div>
 
               <div className="mt-12">
                 <h2>{title}</h2>

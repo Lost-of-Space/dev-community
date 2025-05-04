@@ -17,14 +17,14 @@ const HomePage = () => {
 
   let [pageState, setPageState] = useState("home");
 
-  let categories = [
-    "frontend",
-    "backend",
-    "technology stacks",
-    "languages",
-    "sky",
-    "win11"
-  ]
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    axios.get(import.meta.env.VITE_SERVER_DOMAIN + "/top-tags")
+      .then(({ data }) => setCategories(data.tags))
+      .catch(err => console.log("Failed to load tags:", err));
+  }, []);
+
 
   let [cardStyle, setCardStyle] = useState(() => {
     return parseInt(localStorage.getItem("cardStyle")) || 1;

@@ -48,20 +48,22 @@ const verifyJWT = (req, res, next) => {
     }
 
     req.user = user.id
+    req.admin = user.admin
     next()
   })
 }
 
 const formatDataToSend = (user) => {
 
-  const access_token = jwt.sign({ id: user._id }, process.env.SECRET_ACCESS_KEY)
+  const access_token = jwt.sign({ id: user._id, admin: user.admin }, process.env.SECRET_ACCESS_KEY)
 
   return {
     access_token,
     username: user.personal_info.username,
     fullname: user.personal_info.fullname,
     email: user.personal_info.email,
-    profile_img: user.personal_info.profile_img
+    profile_img: user.personal_info.profile_img,
+    isAdmin: user.admin
   }
 }
 
@@ -236,7 +238,7 @@ server.post('/latest-posts', (req, res) => {
 
   let { page } = req.body;
 
-  let maxLimit = 5; // The limit of posts that comes from server
+  let maxLimit = 10; // The limit of posts that comes from server
 
   Post.find({ draft: false })
     .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
@@ -252,7 +254,6 @@ server.post('/latest-posts', (req, res) => {
     })
 })
 
-
 server.post("/all-latest-posts-count", (req, res) => {
   Post.countDocuments({ draft: false })
     .then(count => {
@@ -263,6 +264,22 @@ server.post("/all-latest-posts-count", (req, res) => {
       return res.status(500).json({ error: err.message })
     })
 })
+
+server.get("/top-tags", async (req, res) => {
+  try {
+    const topTags = await Post.aggregate([
+      { $match: { draft: false } },
+      { $unwind: "$tags" },
+      { $group: { _id: "$tags", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]);
+
+    res.status(200).json({ tags: topTags.map(tag => tag._id) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // Popular Posts
 server.get("/popular-posts", (req, res) => {
@@ -323,7 +340,7 @@ server.post("/search-posts", (req, res) => {
     findQuery = { author, draft: false }
   }
 
-  let maxLimit = limit ? limit : 2; // The limit of posts that comes from server
+  let maxLimit = limit ? limit : 5; // The limit of posts that comes from server
 
   Post.find(findQuery)
     .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")

@@ -42,11 +42,11 @@ export const ManagePublishedPostCard = ({ post }) => {
           </div>
 
           <div className="flex gap-6 mt-3">
-            <Link to={`/editor/${post_id}`} className="pr-4 py-2 underline">Edit</Link>
+            <Link to={`/editor/${post_id}`} className="pt-4 py-2 underline">Edit</Link>
 
-            <button onClick={() => setShowStats(preVal => !preVal)} className="lg:hidden pr-4 py-2 underline">Stats</button>
+            <button onClick={() => setShowStats(preVal => !preVal)} className="lg:hidden pt-4 py-2 underline">Stats</button>
 
-            <button onClick={(e) => deletePost(post, access_token, e.target)} className="pr-4 py-2 underline text-red">Delete</button>
+            <button onClick={(e) => deletePost(post, access_token, e.target)} className="pt-4 py-2 underline text-red">Delete</button>
           </div>
 
         </div>
@@ -78,16 +78,16 @@ export const ManageDraftPostCard = ({ post }) => {
 
   return (
     <div className="flex gap-5 lg:gap-10 pb-6 border-b mb-6 border-grey">
-      <h1 className="post-index text-center pl-4 md:pl-6 flex-none text-4xl">{index < 10 ? "0" + index : index}</h1>
+      <h1 className="post-index text-center pl-4 md:pl-6 flex-none text-6xl">{(index + 1).toString().padStart(2, "0")}</h1>
 
       <div>
         <h1 className="post-title mb-3">{title}</h1>
         <p className="line-clamp-2">{des.length ? des : "No description"}</p>
 
         <div className="flex gap-6 mt-3">
-          <Link to={`editor/${post_id}`} className="pt-4 py-2 underline"></Link>
+          <Link to={`/editor/${post_id}`} className="pt-4 py-2 underline">Edit</Link>
 
-          <button onClick={(e) => deletePost(post, access_token, e.target)} className="pr-4 py-2 underline text-red">Delete</button>
+          <button onClick={(e) => deletePost(post, access_token, e.target)} className="pt-4 py-2 underline text-red">Delete</button>
         </div>
       </div>
     </div>

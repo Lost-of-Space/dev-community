@@ -5,39 +5,65 @@ const PostCard = ({ content, author, style }) => {
   let { publishedAt, tags, title, des, banner, activity: { total_likes }, post_id: id } = content;
   let { fullname, profile_img } = author;
 
+  const isSameDay = (mongoTimestamp) => {
+    const postDate = new Date(mongoTimestamp);
+    const now = new Date();
+
+    return (
+      postDate.getDate() === now.getDate() &&
+      postDate.getMonth() === now.getMonth() &&
+      postDate.getFullYear() === now.getFullYear()
+    );
+  };
+
   if (style === 2) {
     return (
       <Link
         to={`/post/${id}`}
         className="flex flex-col gap-8 items-start border-b border-grey pb-5 mb-4 relative"
       >
-        <div
-          className="w-full bg-cover bg-center p-6 text-black overflow-hidden shadow-md hover:shadow-lg transition-shadow"
-          style={{
-            /* rounded-[20px] */
-            backgroundImage: `linear-gradient(to right, rgba(255, 255, 255, 255.7), rgba(255, 255, 255, 0.3)), url(${banner})`,
-          }}
-        >
-          <div className="flex gap-2 items-center mb-4">
-            <img src={profile_img} alt="author avatar" className="w-6 h-6 rounded-full" />
-            <p className="lime-clamp-1">{fullname}</p>
-            <p>•</p>
-            <p className="min-w-fit">{getDay(publishedAt)}</p>
-          </div>
+        <div className="w-full relative overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+          {
+            isSameDay(publishedAt, new Date()) ?
+              <span className="absolute top-3 right-3 text-xs font-semibold text-black bg-white/60 px-2 py-1 rounded-md shadow-sm z-20">
+                Posted Today
+              </span>
+              : ""
+          }
 
-          <h1 className="post-title text-2xl font-bold mb-3">{title}</h1>
+          {/* Background image */}
+          <div
+            className="absolute inset-0 bg-cover bg-center z-0"
+            style={{ backgroundImage: `url(${banner})` }}
+          ></div>
 
-          <p className="text-lg line-clamp-2">{des}</p>
+          {/* White gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-white/80 to-white/20 z-10"></div>
 
-          <div className="flex gap-4 mt-4">
-            <span className="tag py-1 px-4">{tags[0]}</span>
-            <span className="ml-3 flex items-center gap-2 text-light-grey">
-              <span className="fi fi-br-heart -mb-1"></span>
-              {total_likes}
-            </span>
+          {/* Content */}
+          <div className="relative z-20 p-6 text-black">
+            <div className="flex gap-2 items-center mb-4">
+              <img src={profile_img} alt="author avatar" className="w-6 h-6 rounded-full" />
+              <p className="line-clamp-1">{fullname}</p>
+              <p>•</p>
+              <p className="min-w-fit">{getDay(publishedAt)}</p>
+            </div>
+
+            <h1 className="post-title text-2xl font-bold mb-3">{title}</h1>
+
+            <p className="text-lg line-clamp-2">{des}</p>
+
+            <div className="flex gap-4 mt-4">
+              <span className="tag text-black py-1 ml-2 px-4 rounded-full text-xs">{tags[0]}</span>
+              <span className="ml-3 flex items-center gap-2 text-light-grey">
+                <span className="fi fi-br-heart -mb-1"></span>
+                {total_likes}
+              </span>
+            </div>
           </div>
         </div>
       </Link>
+
     );
   }
 
@@ -47,33 +73,49 @@ const PostCard = ({ content, author, style }) => {
         to={`/post/${id}`}
         className="flex flex-col gap-8 items-start border-b border-grey pb-5 mb-4 relative"
       >
-        <div
-          className="w-full bg-cover bg-center p-6 text-white overflow-hidden shadow-md hover:shadow-lg transition-shadow"
-          style={{
-            /* rounded-[20px] */
-            backgroundImage: `linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.3)), url(${banner})`,
-          }}
-        >
-          <div className="flex gap-2 items-center mb-4">
-            <img src={profile_img} alt="author avatar" className="w-6 h-6 rounded-full" />
-            <p className="lime-clamp-1">{fullname}</p>
-            <p>•</p>
-            <p className="min-w-fit">{getDay(publishedAt)}</p>
-          </div>
+        <div className="w-full relative overflow-hidden shadow-md hover:shadow-lg transition-shadow">
 
-          <h1 className="post-title text-2xl font-bold mb-3">{title}</h1>
+          {
+            isSameDay(publishedAt, new Date()) ?
+              <span className="absolute top-3 right-3 text-xs font-semibold text-black bg-white/60 px-2 py-1 rounded-md shadow-sm z-20">
+                Posted Today
+              </span>
+              : ""
+          }
 
-          <p className="text-lg line-clamp-2">{des}</p>
+          {/* Background image */}
+          <div
+            className="absolute inset-0 bg-cover bg-center z-0"
+            style={{ backgroundImage: `url(${banner})` }}
+          ></div>
 
-          <div className="flex gap-4 mt-4">
-            <span className="tag py-1 px-4">{tags[0]}</span>
-            <span className="ml-3 flex items-center gap-2 text-light-grey">
-              <span className="fi fi-br-heart -mb-1"></span>
-              {total_likes}
-            </span>
+          {/* Black gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/20 z-10"></div>
+
+          {/* Content */}
+          <div className="relative z-20 p-6 text-white">
+            <div className="flex gap-2 items-center mb-4">
+              <img src={profile_img} alt="author avatar" className="w-6 h-6 rounded-full" />
+              <p className="line-clamp-1">{fullname}</p>
+              <p>•</p>
+              <p className="min-w-fit">{getDay(publishedAt)}</p>
+            </div>
+
+            <h1 className="post-title text-2xl font-bold mb-3">{title}</h1>
+
+            <p className="text-lg line-clamp-2">{des}</p>
+
+            <div className="flex gap-4 mt-4">
+              <span className="tag text-black py-1 ml-2 px-4 rounded-full text-xs">{tags[0]}</span>
+              <span className="ml-3 flex items-center gap-2 text-light-grey">
+                <span className="fi fi-br-heart -mb-1"></span>
+                {total_likes}
+              </span>
+            </div>
           </div>
         </div>
       </Link>
+
     )
   }
 
@@ -85,6 +127,15 @@ const PostCard = ({ content, author, style }) => {
       >
         {/* rounded-[14px] */}
         <div className="relative w-full h-36">
+
+          {
+            isSameDay(publishedAt, new Date()) ?
+              <span className="absolute top-3 right-3 text-xs font-semibold text-black bg-white/60 px-2 py-1 rounded-md shadow-sm z-20">
+                Posted Today
+              </span>
+              : ""
+          }
+
           <img
             src={banner}
             alt="post banner"
@@ -112,7 +163,7 @@ const PostCard = ({ content, author, style }) => {
             <div className="flex items-center gap-1 text-dark-grey">
               <span className="fi fi-br-heart -mb-1"></span>
               <span className="text-xs mx-1">{total_likes}</span>
-              <span className="tag text-black py-1 ml-2 px-3 rounded-full text-xs">{tags[0]}</span>
+              <span className="tag text-black py-1 ml-2 px-4 rounded-full text-xs">{tags[0]}</span>
 
             </div>
             <div className="flex">
@@ -133,7 +184,14 @@ const PostCard = ({ content, author, style }) => {
         className="relative flex flex-col gap-8 border-b border-grey pb-5 mb-4"
       >
         <div className="relative z-10 p-6 overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-          {/* rounded-[20px] */}
+          {
+            isSameDay(publishedAt, new Date()) ?
+              <span className="absolute top-3 right-3 text-xs font-semibold text-black bg-white/60 px-2 py-1 rounded-md shadow-sm z-20">
+                Posted Today
+              </span>
+              : ""
+          }
+
           <div className="flex gap-2 items-center mb-4">
             <img src={profile_img} alt="author avatar" className="w-6 h-6 rounded-full" />
             <p className="lime-clamp-1">{fullname}</p>
@@ -146,7 +204,7 @@ const PostCard = ({ content, author, style }) => {
           <p className="text-lg line-clamp-2">{des}</p>
 
           <div className="flex gap-4 mt-4">
-            <span className="tag py-1 px-4">{tags[0]}</span>
+            <span className="tag text-black py-1 ml-2 px-4 rounded-full text-xs">{tags[0]}</span>
             <span className="ml-3 flex items-center gap-2 text-dark-grey">
               <span className="fi fi-br-heart -mb-1"></span>
               {total_likes}

@@ -7,7 +7,7 @@ const MinimalPostCard = ({ post, index }) => {
 
   return (
     <Link to={`/post/${id}`} className="flex gap-5 mb-4">
-      <h1 className="post-index">{index < 10 ? "0" + (index + 1) : index}</h1>
+      <h1 className="post-index">{(index + 1).toString().padStart(2, "0")}</h1>
 
       <div>
         <div className="flex gap-2 items-center mb-4">
