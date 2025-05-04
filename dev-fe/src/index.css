@@ -54,6 +54,10 @@
         @apply outline-none select-none bg-grey p-3 pl-6 pr-[12%] border-[3px] border-grey focus:border-black hover:border-black transition-colors duration-150 placeholder:text-dark-grey md:pl-12
     }
 
+    .search-remove-x::-webkit-search-cancel-button {
+        display: none;
+    }
+
     .user-nav-btn:hover::before {
         @apply opacity-100
     }

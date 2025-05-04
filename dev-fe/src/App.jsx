@@ -1,6 +1,10 @@
 /*
-pt5(3:27:03)
-Todo: Add dynamic tag suggestions
+Todo:
+Add dynamic tag suggestions
+Deleting posts by moderators with notification
+Add confirmation menu for deleting posts
+
+4:58:37
 */
 
 import { lookInSession } from "./common/session";
@@ -17,6 +21,8 @@ import PostPage from "./pages/post.page";
 import SideNavbar from "./components/sidenavbar.component";
 import ChangePasswordPage from "./pages/change-password.page";
 import EditProfilePage from "./pages/edit-profile.page";
+import NotificationsPage from "./pages/notifications.page";
+import ManagePostsPage from "./pages/manage-posts.page";
 
 export const UserContext = createContext({})
 
@@ -40,6 +46,10 @@ const App = () => {
                 <Route path="/editor/:post_id" element={<Editor />} />
                 <Route path="/" element={<Navbar />}>
                     <Route index element={<HomePage />} />
+                    <Route path="dashboard" element={<SideNavbar />}>
+                        <Route path="posts" element={<ManagePostsPage />} />
+                        <Route path="notifications" element={<NotificationsPage />} />
+                    </Route>
                     <Route path="settings" element={<SideNavbar />}>
                         <Route path="edit-profile" element={<EditProfilePage />} />
                         <Route path="change-password" element={<ChangePasswordPage />} />

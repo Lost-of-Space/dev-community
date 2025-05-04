@@ -134,7 +134,7 @@ const PostEditor = () => {
             toast.success("Saved");
 
             setTimeout(() => {
-              navigate("/")
+              navigate("/dashboard/posts?tab=draft")
             }, 500);
 
           })
