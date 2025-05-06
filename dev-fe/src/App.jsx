@@ -1,6 +1,5 @@
 /*
 Todo:
-Add dynamic tag suggestions
 Deleting posts by moderators with notification
 Add confirmation menu for deleting posts
 
@@ -22,6 +21,8 @@ import ChangePasswordPage from "./pages/change-password.page";
 import EditProfilePage from "./pages/edit-profile.page";
 import NotificationsPage from "./pages/notifications.page";
 import ManagePostsPage from "./pages/manage-posts.page";
+import AdmNavbar from "./control-panel/components/sidenav.adm.component";
+import ManageUsersPage from "./control-panel/pages/manage-users.page";
 
 export const UserContext = createContext({});
 
@@ -75,6 +76,10 @@ const App = () => {
                         <Route path="user/:id" element={<ProfilePage />} />
                         <Route path="post/:post_id" element={<PostPage />} />
                         <Route path="*" element={<PageNotFound />} />
+                        <Route path="admin" element={<AdmNavbar />}>
+                            <Route path="users" element={<ManageUsersPage />} />
+                            <Route path="posts" element={<NotificationsPage />} />
+                        </Route>
                     </Route>
                 </Routes>
             </UserContext.Provider>

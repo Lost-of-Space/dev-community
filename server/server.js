@@ -49,13 +49,14 @@ const verifyJWT = (req, res, next) => {
 
     req.user = user.id
     req.admin = user.admin
+    req.blocked = user.blocked
     next()
   })
 }
 
 const formatDataToSend = (user) => {
 
-  const access_token = jwt.sign({ id: user._id, admin: user.admin }, process.env.SECRET_ACCESS_KEY)
+  const access_token = jwt.sign({ id: user._id, admin: user.admin, blocked: user.blocked }, process.env.SECRET_ACCESS_KEY)
 
   return {
     access_token,
@@ -63,7 +64,8 @@ const formatDataToSend = (user) => {
     fullname: user.personal_info.fullname,
     email: user.personal_info.email,
     profile_img: user.personal_info.profile_img,
-    isAdmin: user.admin
+    isAdmin: user.admin,
+    isBlocked: user.blocked
   }
 }
 
@@ -944,6 +946,123 @@ server.post("/delete-post", verifyJWT, (req, res) => {
       return res.status(500).json({ error: err.message });
     })
 })
+
+
+/*
+
+  Control Panel
+
+*/
+
+server.post("/get-users", verifyJWT, async (req, res) => {
+  let {
+    page, filter, query, userFilter = {}, deletedDocCount,
+    isAdmin, sortField, sortOrder
+  } = req.body;
+
+  const maxLimit = 6;
+  let skipDocs = (page - 1) * maxLimit;
+
+  if (!isAdmin) {
+    return res.status(403).json({ error: "Access denied." });
+  }
+
+  let findQuery = {};
+
+  if (filter !== "all" && query) {
+    findQuery["$or"] = [
+      { "personal_info.username": { $regex: query, $options: "i" } },
+      { "personal_info.fullname": { $regex: query, $options: "i" } }
+    ];
+  }
+
+  let roleFilters = [];
+  if (userFilter.admin) roleFilters.push({ admin: true });
+  if (userFilter.user) roleFilters.push({ admin: false });
+  if (userFilter.blocked) roleFilters.push({ blocked: true });
+
+  if (roleFilters.length > 0) {
+    findQuery["$and"] = roleFilters;
+  }
+
+  if (deletedDocCount) {
+    skipDocs -= deletedDocCount;
+  }
+
+  try {
+    const users = await User.find(findQuery)
+      .skip(skipDocs)
+      .limit(maxLimit)
+      .select("personal_info.fullname personal_info.username personal_info.profile_img personal_info.email admin blocked account_info joinedAt")
+      .sort({ [sortField]: sortOrder === "asc" ? 1 : -1 });
+
+    return res.status(200).json({ users });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+server.post("/get-users-count", verifyJWT, async (req, res) => {
+  let { filter, query, userFilter = {} } = req.body;
+
+  let findQuery = {};
+
+  if (filter !== "all" && query) {
+    findQuery["$or"] = [
+      { "personal_info.username": { $regex: query, $options: "i" } },
+      { "personal_info.fullname": { $regex: query, $options: "i" } }
+    ];
+  }
+
+  let roleFilters = [];
+  if (userFilter.admin) roleFilters.push({ admin: true });
+  if (userFilter.user) roleFilters.push({ admin: false });
+  if (userFilter.blocked) roleFilters.push({ blocked: true });
+
+  if (roleFilters.length > 0) {
+    findQuery["$and"] = roleFilters;
+  }
+
+  try {
+    const count = await User.countDocuments(findQuery);
+    return res.status(200).json({ totalDocs: count });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+server.patch("/toggle-user-flag", async (req, res) => {
+  const { targetUserId, isAdmin, field } = req.body;
+
+  if (!isAdmin) {
+    return res.status(403).json({ error: "Access denied. Only admins can change user flags." });
+  }
+
+  if (!["admin", "blocked"].includes(field)) {
+    return res.status(400).json({ error: "Invalid field provided." });
+  }
+
+  try {
+    const targetUser = await User.findById(targetUserId);
+    if (!targetUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    targetUser[field] = !targetUser[field];
+    await targetUser.save();
+
+    return res.status(200).json({
+      message: `User '${field}' status changed successfully.`,
+      [field]: targetUser[field],
+    });
+
+  } catch (error) {
+    console.error("Error toggling user flag:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 
 server.listen(PORT, () => {

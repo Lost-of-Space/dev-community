@@ -47,10 +47,17 @@ const userSchema = mongoose.Schema(
                 type: String,
             },
         },
+
         admin: {
             type: Boolean,
             default: false
         },
+
+        blocked: {
+            type: Boolean,
+            default: false
+        },
+
         social_links: {
             youtube: {
                 type: String,

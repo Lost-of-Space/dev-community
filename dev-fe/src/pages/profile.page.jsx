@@ -46,10 +46,11 @@ const ProfilePage = () => {
     personal_info: { fullname, username: profile_username, profile_img, bio },
     account_info: { total_posts, total_reads },
     social_links,
-    joinedAt
+    joinedAt,
+    blocked
   } = profile;
 
-  let { userAuth: { username } } = useContext(UserContext)
+  let { userAuth: { username, isBlocked } } = useContext(UserContext)
 
   const fetchUserProfile = () => {
     axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/get-profile", { username: profileId })
@@ -120,6 +121,12 @@ const ProfilePage = () => {
                   <h1 className="text-2xl font-medium">{fullname}</h1>
                   <p className="text-xl h-6 text-dark-grey">@{profile_username}</p>
                 </div>
+                {
+                  blocked ?
+                    <p className="bg-red/30 text-red font-bold rounded-sm px-2 py-1">This user is currently blocked.</p>
+                    :
+                    ""
+                }
                 <p>Posts: {total_posts.toLocaleString()} Reads: {total_reads.toLocaleString()}</p>
 
                 <div className="flex gap-4 mt-2">

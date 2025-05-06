@@ -6,7 +6,7 @@ import { removeFromSession } from "../common/session";
 
 const UserNavigationPanel = () => {
 
-  const { userAuth: { username }, setUserAuth } = useContext(UserContext);
+  const { userAuth: { username, isAdmin }, setUserAuth } = useContext(UserContext);
 
   let navigate = useNavigate();
 
@@ -34,6 +34,17 @@ const UserNavigationPanel = () => {
           <span className="fi fi-rr-chart-simple icon"></span>
           <p>Dashboard</p>
         </Link>
+
+        {
+          isAdmin ?
+            <Link to="/admin/users" className="flex gap-2 link py-4 pl-5 hover:bg-black hover:text-white selector-white">
+              <span className="fi fi-rr-settings-sliders icon"></span>
+              <p>Control Panel</p>
+            </Link>
+            :
+            null
+        }
+
         <Link to="/settings/edit-profile" className="flex gap-2 link py-4 pl-5 hover:bg-black hover:text-white selector-white">
           <span className="fi fi-rr-settings icon"></span>
           <p>Settings</p>
