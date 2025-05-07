@@ -5,7 +5,7 @@ import PageNotFound from "../../pages/404.page";
 
 const AdmNavbar = () => {
 
-  let { userAuth: { access_token, isAdmin, new_notification_available } } = useContext(UserContext);
+  let { userAuth: { access_token, isAdmin } } = useContext(UserContext);
 
   let page = location.pathname.split("/")[2];
 
@@ -69,28 +69,22 @@ const AdmNavbar = () => {
                 <hr className="border-grey -ml-6 mb-8 mr-6" />
 
                 <NavLink to="/admin/users" onClick={(e) => setPageState(e.target.innerText)} className="sidebar-link">
-                  <span className="fi fi-rr-document icon"></span>
+                  <span className="fi fi-rr-user icon"></span>
                   Users
                 </NavLink>
 
                 <NavLink to="/admin/posts" onClick={(e) => setPageState(e.target.innerText)} className="sidebar-link">
-                  <span className="fi fi-rr-file-edit icon"></span>
+                  <span className="fi fi-rr-document icon"></span>
                   Posts
                 </NavLink>
 
-                <h1 className="text-xl text-dark-grey mt-20 mb-3">Settings</h1>
+                <h1 className="text-xl text-dark-grey mt-20 mb-3">Website</h1>
                 <hr className="border-grey -ml-6 mb-8 mr-6" />
 
-                <NavLink to="/settings/edit-profile" onClick={(e) => setPageState(e.target.innerText)} className="sidebar-link">
-                  <span className="fi fi-rr-user icon"></span>
-                  Edit Profile
+                <NavLink to="/admin/statistics" onClick={(e) => setPageState(e.target.innerText)} className="sidebar-link">
+                  <span className="fi fi-rr-chart-pie icon"></span>
+                  Statistics
                 </NavLink>
-
-                <NavLink to="/settings/change-password" onClick={(e) => setPageState(e.target.innerText)} className="sidebar-link">
-                  <span className="fi fi-rr-lock icon"></span>
-                  Change Password
-                </NavLink>
-
               </div>
 
             </div>

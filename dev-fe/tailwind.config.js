@@ -11,7 +11,8 @@ export default {
             'grey-404': '#F3F3F3',
             'royalblue': '#4070f4',
             'cornflowerblue': '#696CFE',
-            'yellow': '#FBB503'
+            'yellow': '#FBB503',
+            'blocked-red': "#762121"
         },
 
         fontSize: {

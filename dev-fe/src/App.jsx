@@ -7,7 +7,7 @@ Add confirmation menu for deleting posts
 
 import { lookInSession } from "./common/session";
 import { createContext, useEffect, useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Outlet } from "react-router-dom";
 import Navbar from "./components/navbar.component";
 import UserAuthForm from "./pages/userAuthForm.page";
 import Editor from "./pages/editor.pages";
@@ -23,6 +23,9 @@ import NotificationsPage from "./pages/notifications.page";
 import ManagePostsPage from "./pages/manage-posts.page";
 import AdmNavbar from "./control-panel/components/sidenav.adm.component";
 import ManageUsersPage from "./control-panel/pages/manage-users.page";
+import AppRouter from "./common/AppRouter";
+import BlockedPage from "./pages/blocked.page";
+import StatisticsPage from "./control-panel/pages/statistics.page";
 
 export const UserContext = createContext({});
 
@@ -58,29 +61,37 @@ const App = () => {
         <ThemeContext.Provider value={{ theme, setTheme }}>
             <UserContext.Provider value={{ userAuth, setUserAuth }}>
                 <Routes>
-                    <Route path="/editor" element={<Editor />} />
-                    <Route path="/editor/:post_id" element={<Editor />} />
+                    <Route element={<AppRouter><Outlet /></AppRouter>}>
+                        <Route path="/editor" element={<Editor />} />
+                        <Route path="/editor/:post_id" element={<Editor />} />
+                    </Route>
                     <Route path="/" element={<Navbar />}>
-                        <Route index element={<HomePage />} />
-                        <Route path="dashboard" element={<SideNavbar />}>
-                            <Route path="posts" element={<ManagePostsPage />} />
-                            <Route path="notifications" element={<NotificationsPage />} />
+                        <Route path="blocked" element={<BlockedPage />} />
+                        <Route element={<AppRouter> <Outlet /> </AppRouter>}>
+                            <Route index element={<HomePage />} />
+                            <Route path="dashboard" element={<SideNavbar />}>
+                                <Route path="posts" element={<ManagePostsPage />} />
+                                <Route path="notifications" element={<NotificationsPage />} />
+                            </Route>
+                            <Route path="settings" element={<SideNavbar />}>
+                                <Route path="edit-profile" element={<EditProfilePage />} />
+                                <Route path="change-password" element={<ChangePasswordPage />} />
+                            </Route>
+                            <Route path="search/:query" element={<SearchPage />} />
+                            <Route path="user/:id" element={<ProfilePage />} />
+                            <Route path="post/:post_id" element={<PostPage />} />
+                            <Route path="admin" element={<AdmNavbar />}>
+                                <Route path="users" element={<ManageUsersPage />} />
+                                <Route path="posts" element={<NotificationsPage />} />
+                                <Route path="statistics" element={<StatisticsPage />} />
+                            </Route>
                         </Route>
-                        <Route path="settings" element={<SideNavbar />}>
-                            <Route path="edit-profile" element={<EditProfilePage />} />
-                            <Route path="change-password" element={<ChangePasswordPage />} />
-                        </Route>
+
                         <Route path="signin" element={<UserAuthForm type="sign-in" />} />
                         <Route path="signup" element={<UserAuthForm type="sign-up" />} />
-                        <Route path="search/:query" element={<SearchPage />} />
-                        <Route path="user/:id" element={<ProfilePage />} />
-                        <Route path="post/:post_id" element={<PostPage />} />
                         <Route path="*" element={<PageNotFound />} />
-                        <Route path="admin" element={<AdmNavbar />}>
-                            <Route path="users" element={<ManageUsersPage />} />
-                            <Route path="posts" element={<NotificationsPage />} />
-                        </Route>
                     </Route>
+
                 </Routes>
             </UserContext.Provider>
         </ThemeContext.Provider>

@@ -99,7 +99,7 @@ const Navbar = () => {
           </Link>
 
           <button onClick={changeTheme} className="w-12 h-12 rounded-full bg-grey relative hover:bg-black/10">
-            <span className={"text-2xl block mt-1 fi fi-" + (theme == "light" ? "rr-moon-stars" : "br-sun")}></span>
+            <span className={"text-2xl -mb-1 block mt-1 fi fi-" + (theme == "light" ? "rr-moon-stars" : "br-sun")}></span>
           </button>
 
           {
@@ -107,7 +107,7 @@ const Navbar = () => {
               <>
                 <Link to="/dashboard/notifications">
                   <button className="w-12 h-12 rounded-full bg-grey relative hover:bg-black/10">
-                    <span className="fi fi-rr-bell text-2xl block mt-1"></span>
+                    <span className="fi fi-rr-bell text-2xl block -mb-1"></span>
                     {
                       new_notification_available ?
                         <span className="bg-red w-3 h-3 rounded-full absolute z-10 top-2 right-2"></span>
