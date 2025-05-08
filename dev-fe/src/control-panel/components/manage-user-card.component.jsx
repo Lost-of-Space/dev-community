@@ -3,6 +3,7 @@ import { UserContext } from "../../App";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { NavLink } from "react-router-dom";
+import DialogWrapper from "../../components/dialog-window.component";
 
 const ManageUserCard = ({ user, setUsers }) => {
   const { userAuth, userAuth: { access_token, isAdmin } } = useContext(UserContext);
@@ -93,14 +94,30 @@ const ManageUserCard = ({ user, setUsers }) => {
 
       <td className="p-4">
         <div className="flex gap-2">
-          <button
-            className="flex items-center justify-center hover:bg-yellow/20 hover:text-yellow active:bg-yellow/20 active:text-yellow px-2 py-1 h-8 w-8 rounded font-bold disabled:bg-grey/70 disabled:text-black/50"
-            disabled={email === userAuth.email}
-            onClick={() => toggleUserFlag(_id, "admin")}
+          <DialogWrapper
+            onConfirm={() => toggleUserFlag(_id, "admin")}
+            message={<p>Are you sure you want to <span className="underline">{admin ? "remove" : "add"}</span> <span className="text-yellow bg-yellow/20 px-2">admin</span> status of user <span className="text-royalblue">{username}</span>?</p>}
+            confirmText={"Confirm"}
           >
-            <span className={`-mb-1 fi fi-${admin ? "sr-star text-yellow" : "rr-star"}`}></span>
-          </button>
-          <button disabled={email === userAuth.email || admin} onClick={() => toggleUserFlag(_id, "blocked")} className={"hover:bg-red/30 hover:text-red active:bg-red/30 active:text-red px-2 py-1 rounded disabled:bg-grey disabled:opacity-60 disabled:text-black " + (blocked ? "hover:bg-red/30 hover:text-red" : "")}>{!blocked ? "Block" : "Unblock"}</button>
+            <button
+              className="flex items-center justify-center hover:bg-yellow/20 hover:text-yellow active:bg-yellow/20 active:text-yellow px-2 py-1 h-8 w-8 rounded font-bold disabled:bg-grey/70 disabled:text-black/50"
+              disabled={email === userAuth.email}
+            >
+              <span className={`-mb-1 fi fi-${admin ? "sr-star text-yellow" : "rr-star"}`}></span>
+            </button>
+          </DialogWrapper>
+          <DialogWrapper
+            onConfirm={() => toggleUserFlag(_id, "blocked")}
+            message={<p>Are you sure you want to <span className={"px-2 " + (blocked ? "text-green bg-green/30" : "text-red bg-red/30")}>{blocked ? "unblock" : "block"}</span> user <span className="text-royalblue">{username}</span>?</p>}
+            confirmText={!blocked ? "Block" : "Unblock"}
+          >
+            <button
+              disabled={email === userAuth.email}
+              className="hover:bg-red/30 hover:text-red px-2 py-1 rounded disabled:bg-grey disabled:opacity-60 disabled:text-black"
+            >
+              {!blocked ? "Block" : "Unblock"}
+            </button>
+          </DialogWrapper>
         </div>
       </td>
     </tr>

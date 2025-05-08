@@ -12,6 +12,7 @@ export default {
             'royalblue': '#4070f4',
             'cornflowerblue': '#696CFE',
             'yellow': '#FBB503',
+            'green': '#2DC503',
             'blocked-red': "#762121"
         },
 

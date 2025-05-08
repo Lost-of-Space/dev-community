@@ -25,7 +25,8 @@ import AdmNavbar from "./control-panel/components/sidenav.adm.component";
 import ManageUsersPage from "./control-panel/pages/manage-users.page";
 import AppRouter from "./common/AppRouter";
 import BlockedPage from "./pages/blocked.page";
-import StatisticsPage from "./control-panel/pages/statistics.page";
+import UserStatisticsPage from "./control-panel/pages/user-statistics.page";
+import PostStatisticsPage from "./control-panel/pages/post-statistics.page";
 
 export const UserContext = createContext({});
 
@@ -83,7 +84,8 @@ const App = () => {
                             <Route path="admin" element={<AdmNavbar />}>
                                 <Route path="users" element={<ManageUsersPage />} />
                                 <Route path="posts" element={<NotificationsPage />} />
-                                <Route path="statistics" element={<StatisticsPage />} />
+                                <Route path="user-statistics" element={<UserStatisticsPage />} />
+                                <Route path="post-statistics" element={<PostStatisticsPage />} />
                             </Route>
                         </Route>
 

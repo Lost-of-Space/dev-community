@@ -1064,6 +1064,39 @@ server.patch("/toggle-user-flag", async (req, res) => {
   }
 });
 
+server.post("/get-user-stats", verifyJWT, async (req, res) => {
+  const { days, isAdmin } = req.body;
+
+  if (!isAdmin) {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
+  try {
+    const now = new Date();
+    const fromDate = new Date(now);
+    fromDate.setDate(now.getDate() - days);
+
+    const recentUsers = await User.find(
+      { joinedAt: { $gte: fromDate, $lte: now } },
+      "joinedAt"
+    )
+      .lean();
+
+    const totalUsers = await User.countDocuments();
+    const blockedUsers = await User.countDocuments({ blocked: true });
+
+    res.json({
+      recentUsers,
+      totalUsers,
+      blockedUsers,
+    });
+  } catch (err) {
+    console.error("Error fetching user stats:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 
 server.listen(PORT, () => {
   console.log('Listening on port: ' + PORT);

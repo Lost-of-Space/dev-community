@@ -78,12 +78,17 @@ const AdmNavbar = () => {
                   Posts
                 </NavLink>
 
-                <h1 className="text-xl text-dark-grey mt-20 mb-3">Website</h1>
+                <h1 className="text-xl text-dark-grey mt-20 mb-3">Statistics</h1>
                 <hr className="border-grey -ml-6 mb-8 mr-6" />
 
-                <NavLink to="/admin/statistics" onClick={(e) => setPageState(e.target.innerText)} className="sidebar-link">
+                <NavLink to="/admin/user-statistics" onClick={(e) => setPageState(e.target.innerText)} className="sidebar-link">
                   <span className="fi fi-rr-chart-pie icon"></span>
-                  Statistics
+                  Users
+                </NavLink>
+
+                <NavLink to="/admin/post-statistics" onClick={(e) => setPageState(e.target.innerText)} className="sidebar-link">
+                  <span className="fi fi-rr-chart-pie icon"></span>
+                  Posts
                 </NavLink>
               </div>
 
