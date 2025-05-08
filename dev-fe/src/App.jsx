@@ -1,10 +1,3 @@
-/*
-Todo:
-Deleting posts by moderators with notification
-Add confirmation menu for deleting posts
-
-*/
-
 import { lookInSession } from "./common/session";
 import { createContext, useEffect, useState } from "react";
 import { Routes, Route, Outlet } from "react-router-dom";
@@ -22,11 +15,12 @@ import EditProfilePage from "./pages/edit-profile.page";
 import NotificationsPage from "./pages/notifications.page";
 import ManagePostsPage from "./pages/manage-posts.page";
 import AdmNavbar from "./control-panel/components/sidenav.adm.component";
-import ManageUsersPage from "./control-panel/pages/manage-users.page";
+import ManageUsersPage from "./control-panel/pages/manage-users.adm.page";
 import AppRouter from "./common/AppRouter";
 import BlockedPage from "./pages/blocked.page";
 import UserStatisticsPage from "./control-panel/pages/user-statistics.page";
 import PostStatisticsPage from "./control-panel/pages/post-statistics.page";
+import PostsManagementPage from "./control-panel/pages/manage-posts.adm.page";
 
 export const UserContext = createContext({});
 
@@ -83,7 +77,7 @@ const App = () => {
                             <Route path="post/:post_id" element={<PostPage />} />
                             <Route path="admin" element={<AdmNavbar />}>
                                 <Route path="users" element={<ManageUsersPage />} />
-                                <Route path="posts" element={<NotificationsPage />} />
+                                <Route path="posts" element={<PostsManagementPage />} />
                                 <Route path="user-statistics" element={<UserStatisticsPage />} />
                                 <Route path="post-statistics" element={<PostStatisticsPage />} />
                             </Route>

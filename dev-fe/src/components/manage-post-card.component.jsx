@@ -3,6 +3,7 @@ import { getDay } from "../common/date";
 import { useContext, useState } from "react";
 import { UserContext } from "../App";
 import axios from "axios";
+import DialogWrapper from "./dialog-window.component";
 
 
 const PostStats = ({ stats }) => {
@@ -46,7 +47,13 @@ export const ManagePublishedPostCard = ({ post }) => {
 
             <button onClick={() => setShowStats(preVal => !preVal)} className="lg:hidden pt-4 py-2 underline">Stats</button>
 
-            <button onClick={(e) => deletePost(post, access_token, e.target)} className="pt-4 py-2 underline text-red">Delete</button>
+            <DialogWrapper
+              onConfirm={(e) => deletePost(post, access_token)}
+              message={<p>Are you sure you want to <span className="text-red bg-red/30 px-2">delete</span> this post? <span className="block">This action cannot be undone.</span></p>}
+              confirmText={"Confirm"}
+            >
+              <button className="pt-4 py-2 underline text-red">Delete</button>
+            </DialogWrapper>
           </div>
 
         </div>
@@ -86,19 +93,22 @@ export const ManageDraftPostCard = ({ post }) => {
 
         <div className="flex gap-6 mt-3">
           <Link to={`/editor/${post_id}`} className="pt-4 py-2 underline">Edit</Link>
-
-          <button onClick={(e) => deletePost(post, access_token, e.target)} className="pt-4 py-2 underline text-red">Delete</button>
+          <DialogWrapper
+            onConfirm={(e) => deletePost(post, access_token)}
+            message={<p>Are you sure you want to <span className="text-red bg-red/30 px-2">delete</span> this post? <span className="block">This action cannot be undone.</span></p>}
+            confirmText={"Confirm"}
+          >
+            <button className="pt-4 py-2 underline text-red">Delete</button>
+          </DialogWrapper>
         </div>
       </div>
     </div>
   )
 }
 
-const deletePost = (post, access_token, target) => {
+const deletePost = (post, access_token) => {
 
   let { index, post_id, setStateFunc } = post;
-
-  target.setAttribute("disabled", true);
 
   axios.post(import.meta.env.VITE_SERVER_DOMAIN + "/delete-post", { post_id }, {
     headers: {
@@ -106,7 +116,6 @@ const deletePost = (post, access_token, target) => {
     }
   })
     .then(({ data }) => {
-      target.removeAttribute("disabled");
 
       setStateFunc(preVal => {
         let { deletedDocCount, totalDocs, results } = preVal;

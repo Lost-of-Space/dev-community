@@ -938,7 +938,7 @@ server.post("/delete-post", verifyJWT, (req, res) => {
         .then(data => console.log('notifications deleted'))
       Comment.deleteMany({ post_id: post._id })
         .then(data => console.log('comments deleted'))
-      User.findOneAndUpdate({ _id: user_id }, { $pull: { post: post._id }, $inc: { "account_info.total_posts": -1 } })
+      User.findOneAndUpdate({ _id: user_id }, { $pull: { posts: post._id }, $inc: { "account_info.total_posts": post.draft ? 0 : -1 } })
         .then(user => console.log('post deleted'))
       return res.status(200).json({ status: 'done' });
     })
@@ -1096,6 +1096,145 @@ server.post("/get-user-stats", verifyJWT, async (req, res) => {
   }
 });
 
+server.post("/get-post-stats", verifyJWT, async (req, res) => {
+  const { days, isAdmin } = req.body;
+
+  if (!isAdmin) {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
+  try {
+    const now = new Date();
+    const fromDate = new Date(now);
+    fromDate.setDate(now.getDate() - days);
+
+    const recentPosts = await Post.find(
+      { publishedAt: { $gte: fromDate, $lte: now } },
+      "publishedAt"
+    ).lean();
+
+    const totalPosts = await Post.countDocuments();
+    const totalDrafts = await Post.countDocuments({ draft: true });
+
+    res.json({
+      recentPosts,
+      totalPosts,
+      totalDrafts,
+    });
+  } catch (err) {
+    console.error("Error fetching post stats:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+server.post("/get-posts-adm", verifyJWT, async (req, res) => {
+  let {
+    page, filter, query, postFilter = {}, deletedDocCount,
+    isAdmin, sortField, sortOrder
+  } = req.body;
+
+  const maxLimit = 6;
+  let skipDocs = (page - 1) * maxLimit;
+
+  if (!isAdmin) {
+    return res.status(403).json({ error: "Access denied." });
+  }
+
+  let findQuery = {};
+
+  if (filter !== "all" && query) {
+    if (query.startsWith("@")) {
+      const username = query.slice(1);
+      const users = await User.find({
+        "personal_info.username": { $regex: username, $options: "i" }
+      }).select("_id");
+
+      const userIds = users.map(user => user._id);
+
+      if (userIds.length) {
+        findQuery["author"] = { $in: userIds };
+      } else {
+        return res.status(200).json({ posts: [] });
+      }
+    } else {
+      findQuery["title"] = { $regex: query, $options: "i" };
+    }
+  }
+
+  let statusFilters = [];
+  if (postFilter.published) statusFilters.push({ draft: false });
+  if (postFilter.draft) statusFilters.push({ draft: true });
+
+  if (statusFilters.length > 0) {
+    findQuery["$or"] = statusFilters;
+  }
+
+  if (deletedDocCount) {
+    skipDocs -= deletedDocCount;
+  }
+
+  try {
+    const posts = await Post.find(findQuery)
+      .skip(skipDocs)
+      .limit(maxLimit)
+      .populate("author", "personal_info.fullname personal_info.username")
+      .select("post_id title author activity.total_likes publishedAt draft")
+      .sort({ [sortField]: sortOrder === "asc" ? 1 : -1 });
+
+    const transformedPosts = posts.map(post => ({
+      ...post.toObject(),
+      author: {
+        username: post.author.personal_info.username
+      }
+    }));
+
+    return res.status(200).json({ posts: transformedPosts });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+server.post("/get-posts-count-adm", verifyJWT, async (req, res) => {
+  let { filter, query, postFilter = {} } = req.body;
+
+  let findQuery = {};
+
+  if (filter !== "all" && query) {
+    if (query.startsWith("@")) {
+      const username = query.slice(1);
+      const users = await User.find({
+        "personal_info.username": { $regex: username, $options: "i" }
+      }).select("_id");
+
+      const userIds = users.map(user => user._id);
+
+      if (userIds.length) {
+        findQuery["author"] = { $in: userIds };
+      } else {
+        return res.status(200).json({ totalDocs: 0 });
+      }
+    } else {
+      findQuery["title"] = { $regex: query, $options: "i" };
+    }
+  }
+
+  let statusFilters = [];
+  if (postFilter.published) statusFilters.push({ draft: false });
+  if (postFilter.draft) statusFilters.push({ draft: true });
+
+  if (statusFilters.length > 0) {
+    findQuery["$or"] = statusFilters;
+  }
+
+  try {
+    const count = await Post.countDocuments(findQuery);
+    return res.status(200).json({ totalDocs: count });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
 
 
 server.listen(PORT, () => {

@@ -16,7 +16,7 @@ const PostStatisticsPage = () => {
     total_draft: 0
   });
 
-  const { userAuth: { access_token } } = useContext(UserContext);
+  const { userAuth: { access_token, isAdmin } } = useContext(UserContext);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (!active || !payload?.length) return null;
@@ -33,7 +33,7 @@ const PostStatisticsPage = () => {
     try {
       const { data: res } = await axios.post(
         `${import.meta.env.VITE_SERVER_DOMAIN}/get-post-stats`,
-        { days },
+        { days, isAdmin },
         {
           headers: {
             Authorization: `Bearer ${access_token}`
