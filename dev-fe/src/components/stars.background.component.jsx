@@ -44,7 +44,7 @@ const FallingStars = ({ symbols = ["★", "✦"], chance = [0.6, 0.4], starSize 
       {stars.map((star) => (
         <div
           key={star.id}
-          className={"star absolute top-0 text-white " + (glowing ? "glow" : "")}
+          className={"star absolute top-0 text-white-404 " + (glowing ? "glow" : "")}
           style={{
             left: star.left,
             fontSize: star.size,

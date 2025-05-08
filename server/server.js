@@ -48,20 +48,24 @@ const verifyJWT = (req, res, next) => {
     }
 
     req.user = user.id
+    req.admin = user.admin
+    req.blocked = user.blocked
     next()
   })
 }
 
 const formatDataToSend = (user) => {
 
-  const access_token = jwt.sign({ id: user._id }, process.env.SECRET_ACCESS_KEY)
+  const access_token = jwt.sign({ id: user._id, admin: user.admin, blocked: user.blocked }, process.env.SECRET_ACCESS_KEY)
 
   return {
     access_token,
     username: user.personal_info.username,
     fullname: user.personal_info.fullname,
     email: user.personal_info.email,
-    profile_img: user.personal_info.profile_img
+    profile_img: user.personal_info.profile_img,
+    isAdmin: user.admin,
+    isBlocked: user.blocked
   }
 }
 
@@ -236,7 +240,7 @@ server.post('/latest-posts', (req, res) => {
 
   let { page } = req.body;
 
-  let maxLimit = 5; // The limit of posts that comes from server
+  let maxLimit = 10; // The limit of posts that comes from server
 
   Post.find({ draft: false })
     .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
@@ -252,17 +256,32 @@ server.post('/latest-posts', (req, res) => {
     })
 })
 
-
 server.post("/all-latest-posts-count", (req, res) => {
   Post.countDocuments({ draft: false })
     .then(count => {
-      return res.status(200).json({ totalPosts: count })
+      return res.status(200).json({ totalDocs: count })
     })
     .catch(err => {
       console.log(err.message);
       return res.status(500).json({ error: err.message })
     })
 })
+
+server.get("/top-tags", async (req, res) => {
+  try {
+    const topTags = await Post.aggregate([
+      { $match: { draft: false } },
+      { $unwind: "$tags" },
+      { $group: { _id: "$tags", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]);
+
+    res.status(200).json({ tags: topTags.map(tag => tag._id) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // Popular Posts
 server.get("/popular-posts", (req, res) => {
@@ -323,7 +342,7 @@ server.post("/search-posts", (req, res) => {
     findQuery = { author, draft: false }
   }
 
-  let maxLimit = limit ? limit : 2; // The limit of posts that comes from server
+  let maxLimit = limit ? limit : 5; // The limit of posts that comes from server
 
   Post.find(findQuery)
     .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
@@ -355,7 +374,7 @@ server.post("/search-posts-count", (req, res) => {
 
   Post.countDocuments(findQuery)
     .then(count => {
-      return res.status(200).json({ totalPosts: count })
+      return res.status(200).json({ totalDocs: count })
     })
     .catch(err => {
       return res.status(500).json({ error: err.message })
@@ -526,7 +545,7 @@ server.post("/isliked-by-user", verifyJWT, (req, res) => {
 server.post("/add-comment", verifyJWT, (req, res) => {
   let user_id = req.user;
 
-  let { _id, comment, post_author, replying_to } = req.body;
+  let { _id, comment, post_author, replying_to, notification_id } = req.body;
 
   if (!comment.length) {
     return res.status(403).json({ error: 'Comment cannot be empty.' });
@@ -561,6 +580,10 @@ server.post("/add-comment", verifyJWT, (req, res) => {
       await Comment.findOneAndUpdate({ _id: replying_to }, { $push: { children: commentFile._id } })
         .then(replyingToCommentDoc => { notificationObj.notification_for = replyingToCommentDoc.commented_by })
 
+      if (notification_id) {
+        Notification.findOneAndUpdate({ _id: notification_id }, { reply: commentFile._id })
+          .then(notification => { console.log('notification updated.') })
+      }
     }
 
     new Notification(notificationObj).save().then(notification => console.log('notification created.'))
@@ -631,7 +654,7 @@ const deleteComments = (_id) => {
       }
 
       Notification.findOneAndDelete({ comment: _id }).then(notification => console.log('comment notification removed.'))
-      Notification.findOneAndDelete({ reply: _id }).then(notification => console.log('reply notification removed.'))
+      Notification.findOneAndUpdate({ reply: _id }, { $unset: { reply: 1 } }).then(notification => console.log('reply notification removed.'))
 
       Post.findOneAndUpdate({ _id: comment.post_id }, { $pull: { comments: _id }, $inc: { "activity.total_comments": -1 }, "activity.total_parent_comments": comment.parent ? 0 : -1 })
         .then(post => {
@@ -771,6 +794,447 @@ server.post("/update-profile", verifyJWT, (req, res) => {
     })
 
 })
+
+/*
+
+  Notifications
+
+*/
+
+server.get("/new-notification", verifyJWT, (req, res) => {
+  let user_id = req.user;
+  Notification.exists({ notification_for: user_id, seen: false, user: { $ne: user_id } })
+    .then(result => {
+      if (result) {
+        return res.status(200).json({ new_notification_available: true })
+      } else {
+        return res.status(200).json({ new_notification_available: false })
+      }
+    })
+    .catch(err => {
+      console.log(err.message);
+      return res.status(500).json({ error: err.message });
+    })
+})
+
+server.post("/notifications", verifyJWT, (req, res) => {
+  let user_id = req.user;
+
+  let { page, filter, deletedDocCount } = req.body;
+
+  let maxLimit = 5;
+
+  let findQuery = { notification_for: user_id, user: { $ne: user_id } };
+
+  let skipDocs = (page - 1) * maxLimit;
+
+  if (filter != 'all') {
+    findQuery.type = filter;
+  }
+
+  if (deletedDocCount) {
+    skipDocs -= deletedDocCount;
+  }
+
+  Notification.find(findQuery)
+    .skip(skipDocs)
+    .limit(maxLimit)
+    .populate('post', 'post_id title')
+    .populate("user", "personal_info.fullname personal_info.username personal_info.profile_img")
+    .populate("comment", "comment")
+    .populate("replied_on_comment", "comment")
+    .populate("reply", "comment")
+    .sort({ createdAt: -1 })
+    .select("createdAt type seen reply")
+    .then(notifications => {
+
+      Notification.updateMany(findQuery, { seen: true })
+        .skip(skipDocs)
+        .limit(maxLimit)
+        .then(() => { console.log("notification seen") })
+
+      return res.status(200).json({ notifications });
+    })
+    .catch(err => {
+      console.log(err.message);
+      return res.status(500).json({ error: err.message });
+    })
+})
+
+server.post("/all-notifications-count", verifyJWT, (req, res) => {
+  let user_id = req.user;
+
+  let { filter } = req.body;
+
+  let findQuery = { notification_for: user_id, user: { $ne: user_id } }
+
+  if (filter != 'all') {
+    findQuery.type = filter;
+  }
+
+  Notification.countDocuments(findQuery)
+    .then(count => {
+      return res.status(200).json({ totalDocs: count });
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message });
+    })
+
+})
+
+/*
+
+  Dashboard
+
+*/
+
+server.post("/user-written-posts", verifyJWT, (req, res) => {
+  let user_id = req.user;
+
+  let { page, draft, query, deletedDocCount } = req.body;
+
+  let maxLimit = 5;
+  let skipDocs = (page - 1) * maxLimit;
+
+  if (deletedDocCount) {
+    skipDocs -= deletedDocCount
+  }
+
+  Post.find({ author: user_id, draft, title: new RegExp(query, 'i') })
+    .skip(skipDocs)
+    .limit(maxLimit)
+    .sort({ publishedAt: -1 })
+    .select(" title banner publishedAt post_id activity des draft -_id")
+    .then(posts => {
+      return res.status(200).json({ posts })
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message });
+    })
+
+})
+
+server.post("/user-written-posts-count", verifyJWT, (req, res) => {
+  let user_id = req.user;
+
+  let { draft, query } = req.body;
+
+  Post.countDocuments({ author: user_id, draft, title: new RegExp(query, 'i') })
+    .then(count => {
+      return res.status(200).json({ totalDocs: count });
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message });
+    })
+})
+
+server.post("/delete-post", verifyJWT, (req, res) => {
+  let user_id = req.user;
+  let { post_id } = req.body;
+
+  Post.findOneAndDelete({ post_id })
+    .then(post => {
+      Notification.deleteMany({ post: post._id })
+        .then(data => console.log('notifications deleted'))
+      Comment.deleteMany({ post_id: post._id })
+        .then(data => console.log('comments deleted'))
+      User.findOneAndUpdate({ _id: user_id }, { $pull: { posts: post._id }, $inc: { "account_info.total_posts": post.draft ? 0 : -1 } })
+        .then(user => console.log('post deleted'))
+      return res.status(200).json({ status: 'done' });
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.message });
+    })
+})
+
+
+/*
+
+  Control Panel
+
+*/
+
+server.post("/get-users", verifyJWT, async (req, res) => {
+  let {
+    page, filter, query, userFilter = {}, deletedDocCount,
+    isAdmin, sortField, sortOrder
+  } = req.body;
+
+  const maxLimit = 6;
+  let skipDocs = (page - 1) * maxLimit;
+
+  if (!isAdmin) {
+    return res.status(403).json({ error: "Access denied." });
+  }
+
+  let findQuery = {};
+
+  if (filter !== "all" && query) {
+    findQuery["$or"] = [
+      { "personal_info.username": { $regex: query, $options: "i" } },
+      { "personal_info.fullname": { $regex: query, $options: "i" } }
+    ];
+  }
+
+  let roleFilters = [];
+  if (userFilter.admin) roleFilters.push({ admin: true });
+  if (userFilter.user) roleFilters.push({ admin: false });
+  if (userFilter.blocked) roleFilters.push({ blocked: true });
+
+  if (roleFilters.length > 0) {
+    findQuery["$and"] = roleFilters;
+  }
+
+  if (deletedDocCount) {
+    skipDocs -= deletedDocCount;
+  }
+
+  try {
+    const users = await User.find(findQuery)
+      .skip(skipDocs)
+      .limit(maxLimit)
+      .select("personal_info.fullname personal_info.username personal_info.profile_img personal_info.email admin blocked account_info joinedAt")
+      .sort({ [sortField]: sortOrder === "asc" ? 1 : -1 });
+
+    return res.status(200).json({ users });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+server.post("/get-users-count", verifyJWT, async (req, res) => {
+  let { filter, query, userFilter = {} } = req.body;
+
+  let findQuery = {};
+
+  if (filter !== "all" && query) {
+    findQuery["$or"] = [
+      { "personal_info.username": { $regex: query, $options: "i" } },
+      { "personal_info.fullname": { $regex: query, $options: "i" } }
+    ];
+  }
+
+  let roleFilters = [];
+  if (userFilter.admin) roleFilters.push({ admin: true });
+  if (userFilter.user) roleFilters.push({ admin: false });
+  if (userFilter.blocked) roleFilters.push({ blocked: true });
+
+  if (roleFilters.length > 0) {
+    findQuery["$and"] = roleFilters;
+  }
+
+  try {
+    const count = await User.countDocuments(findQuery);
+    return res.status(200).json({ totalDocs: count });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+server.patch("/toggle-user-flag", async (req, res) => {
+  const { targetUserId, isAdmin, field } = req.body;
+
+  if (!isAdmin) {
+    return res.status(403).json({ error: "Access denied. Only admins can change user flags." });
+  }
+
+  if (!["admin", "blocked"].includes(field)) {
+    return res.status(400).json({ error: "Invalid field provided." });
+  }
+
+  try {
+    const targetUser = await User.findById(targetUserId);
+    if (!targetUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    targetUser[field] = !targetUser[field];
+    await targetUser.save();
+
+    return res.status(200).json({
+      message: `User '${field}' status changed successfully.`,
+      [field]: targetUser[field],
+    });
+
+  } catch (error) {
+    console.error("Error toggling user flag:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+server.post("/get-user-stats", verifyJWT, async (req, res) => {
+  const { days, isAdmin } = req.body;
+
+  if (!isAdmin) {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
+  try {
+    const now = new Date();
+    const fromDate = new Date(now);
+    fromDate.setDate(now.getDate() - days);
+
+    const recentUsers = await User.find(
+      { joinedAt: { $gte: fromDate, $lte: now } },
+      "joinedAt"
+    )
+      .lean();
+
+    const totalUsers = await User.countDocuments();
+    const blockedUsers = await User.countDocuments({ blocked: true });
+
+    res.json({
+      recentUsers,
+      totalUsers,
+      blockedUsers,
+    });
+  } catch (err) {
+    console.error("Error fetching user stats:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+server.post("/get-post-stats", verifyJWT, async (req, res) => {
+  const { days, isAdmin } = req.body;
+
+  if (!isAdmin) {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
+  try {
+    const now = new Date();
+    const fromDate = new Date(now);
+    fromDate.setDate(now.getDate() - days);
+
+    const recentPosts = await Post.find(
+      { publishedAt: { $gte: fromDate, $lte: now } },
+      "publishedAt"
+    ).lean();
+
+    const totalPosts = await Post.countDocuments();
+    const totalDrafts = await Post.countDocuments({ draft: true });
+
+    res.json({
+      recentPosts,
+      totalPosts,
+      totalDrafts,
+    });
+  } catch (err) {
+    console.error("Error fetching post stats:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+server.post("/get-posts-adm", verifyJWT, async (req, res) => {
+  let {
+    page, filter, query, postFilter = {}, deletedDocCount,
+    isAdmin, sortField, sortOrder
+  } = req.body;
+
+  const maxLimit = 6;
+  let skipDocs = (page - 1) * maxLimit;
+
+  if (!isAdmin) {
+    return res.status(403).json({ error: "Access denied." });
+  }
+
+  let findQuery = {};
+
+  if (filter !== "all" && query) {
+    if (query.startsWith("@")) {
+      const username = query.slice(1);
+      const users = await User.find({
+        "personal_info.username": { $regex: username, $options: "i" }
+      }).select("_id");
+
+      const userIds = users.map(user => user._id);
+
+      if (userIds.length) {
+        findQuery["author"] = { $in: userIds };
+      } else {
+        return res.status(200).json({ posts: [] });
+      }
+    } else {
+      findQuery["title"] = { $regex: query, $options: "i" };
+    }
+  }
+
+  let statusFilters = [];
+  if (postFilter.published) statusFilters.push({ draft: false });
+  if (postFilter.draft) statusFilters.push({ draft: true });
+
+  if (statusFilters.length > 0) {
+    findQuery["$or"] = statusFilters;
+  }
+
+  if (deletedDocCount) {
+    skipDocs -= deletedDocCount;
+  }
+
+  try {
+    const posts = await Post.find(findQuery)
+      .skip(skipDocs)
+      .limit(maxLimit)
+      .populate("author", "personal_info.fullname personal_info.username")
+      .select("post_id title author activity.total_likes publishedAt draft")
+      .sort({ [sortField]: sortOrder === "asc" ? 1 : -1 });
+
+    const transformedPosts = posts.map(post => ({
+      ...post.toObject(),
+      author: {
+        username: post.author.personal_info.username
+      }
+    }));
+
+    return res.status(200).json({ posts: transformedPosts });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+server.post("/get-posts-count-adm", verifyJWT, async (req, res) => {
+  let { filter, query, postFilter = {} } = req.body;
+
+  let findQuery = {};
+
+  if (filter !== "all" && query) {
+    if (query.startsWith("@")) {
+      const username = query.slice(1);
+      const users = await User.find({
+        "personal_info.username": { $regex: username, $options: "i" }
+      }).select("_id");
+
+      const userIds = users.map(user => user._id);
+
+      if (userIds.length) {
+        findQuery["author"] = { $in: userIds };
+      } else {
+        return res.status(200).json({ totalDocs: 0 });
+      }
+    } else {
+      findQuery["title"] = { $regex: query, $options: "i" };
+    }
+  }
+
+  let statusFilters = [];
+  if (postFilter.published) statusFilters.push({ draft: false });
+  if (postFilter.draft) statusFilters.push({ draft: true });
+
+  if (statusFilters.length > 0) {
+    findQuery["$or"] = statusFilters;
+  }
+
+  try {
+    const count = await Post.countDocuments(findQuery);
+    return res.status(200).json({ totalDocs: count });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
 
 
 server.listen(PORT, () => {

@@ -1,5 +1,6 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
 import logo from "../imgs/logo.svg";
+import logo_white from "../imgs/logo_white.svg";
 import AnimationWrapper from "../common/page-animation";
 import defaultBanner from "../imgs/default_banner.png"
 import { useContext, useEffect, useState } from "react";
@@ -8,15 +9,31 @@ import { EditorContext } from "../pages/editor.pages";
 import EditorJS from "@editorjs/editorjs"; //lib for text editor
 import { tools } from "./tools.component";
 import axios from "axios";
-import { UserContext } from "../App";
+import { ThemeContext, UserContext } from "../App";
 import useCloudinaryUpload from "../common/cloudinary";
+import Loader from "./loader.component";
 
 const PostEditor = () => {
 
-  let { post, post: { title, banner, content, tags, des }, setPost, textEditor, setTextEditor, setEditorState } = useContext(EditorContext)
+  const editorContext = useContext(EditorContext);
+  if (!editorContext || !editorContext.post) {
+    return <Loader />
+  }
+
+  const {
+    post,
+    post: { title, banner, content, tags, des },
+    setPost,
+    textEditor,
+    setTextEditor,
+    setEditorState,
+  } = editorContext;
+
 
   let { userAuth: { access_token } } = useContext(UserContext);
   let { post_id } = useParams();
+
+  let { theme, setTheme } = useContext(ThemeContext);
 
   let navigate = useNavigate();
 
@@ -36,7 +53,7 @@ const PostEditor = () => {
   const { uploading, uploadToCloudinary } = useCloudinaryUpload();
 
   const handleBannerUpload = async (e) => {
-    const img = e.target.files[0]; // Отримуємо обране зображення
+    const img = e.target.files[0];
     if (img) {
       try {
         let loadingToast = toast.loading("Uploading...");
@@ -98,7 +115,7 @@ const PostEditor = () => {
         }
       })
         .catch((err) => {
-          return toast.error("An error occured...")
+          return toast.error("An error occured..." + err)
         })
     }
   }
@@ -134,7 +151,7 @@ const PostEditor = () => {
             toast.success("Saved");
 
             setTimeout(() => {
-              navigate("/")
+              navigate("/dashboard/posts?tab=draft")
             }, 500);
 
           })
@@ -152,7 +169,7 @@ const PostEditor = () => {
     <>
       <nav className="navbar">
         <Link to="/" className="flex-none w-20">
-          <img src={logo} alt="logo" />
+          <img src={theme == "light" ? logo : logo_white} alt="logo" />
         </Link>
         <p className="max-md:hidden text-black line-clamp-1 w-full">
           {title.length ? title : "New Post"}
@@ -191,7 +208,7 @@ const PostEditor = () => {
             <textarea
               defaultValue={title}
               placeholder="Post Title"
-              className="text-4xl font-medium w-full h-20 outline-none resize-none mt-10 leading-tight placeholder:opacity-40"
+              className="text-4xl font-medium w-full h-20 outline-none resize-none mt-10 leading-tight placeholder:opacity-40 bg-white"
               onKeyDown={handleTitleKeyDown}
               onChange={handleTitleChange}
             ></textarea>

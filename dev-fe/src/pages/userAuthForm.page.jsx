@@ -3,7 +3,7 @@ import AnimationWrapper from "../common/page-animation";
 import InputBox from "../components/input.component";
 import googleIcon from "../imgs/google.svg";
 import githubIcon from "../imgs/github.svg";
-import { Link, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { Toaster, toast } from "react-hot-toast"; //notification lib
 import axios from "axios";
 import { storeInSession } from "../common/session";

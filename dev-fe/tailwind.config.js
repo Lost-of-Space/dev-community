@@ -1,19 +1,19 @@
+import { createThemes } from 'tw-colors';
+
 /** @type {import('tailwindcss').Config} */
 export default {
     content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
     theme: {
 
         colors: {
-            'white': '#FFFFFF',
-            'black': '#242424',
-            'grey': '#F3F3F3',
-            'dark-grey': '#6B6B6B',
-            'red': '#FF4E4E',
-            'transparent': 'transparent',
-            'twitter': '#1DA1F2',
-            'purple': '#8B46FF',
+            'white-404': '#FFFFFF',
+            'black-404': '#242424',
+            'grey-404': '#F3F3F3',
             'royalblue': '#4070f4',
-            'cornflowerblue': '#696CFE'
+            'cornflowerblue': '#696CFE',
+            'yellow': '#FBB503',
+            'green': '#2DC503',
+            'blocked-red': "#762121"
         },
 
         fontSize: {
@@ -62,5 +62,28 @@ export default {
         },
 
     },
-    plugins: [],
+    plugins: [
+        createThemes({
+            light: {
+                'white': '#FFFFFF',
+                'black': '#242424',
+                'grey': '#F3F3F3',
+                'dark-grey': '#6B6B6B',
+                'red': '#FF4E4E',
+                'transparent': 'transparent',
+                'twitter': '#1DA1F2',
+                'purple': '#8B46FF'
+            },
+            dark: {
+                'white': '#242424',
+                'black': '#F3F3F3',
+                'grey': '#2E2E2E',
+                'dark-grey': '#E7E7E7',
+                'red': '#991F1F',
+                'transparent': 'transparent',
+                'twitter': '#1DA1F2',
+                'purple': '#582C8E'
+            }
+        })
+    ],
 };
