@@ -74,6 +74,11 @@ const SideNavbar = () => {
                 Notifications
               </NavLink>
 
+              <NavLink to="/dashboard/charts" onClick={(e) => setPageState(e.target.innerText)} className="sidebar-link">
+                <span className="fi fi-rr-chart-pie icon"></span>
+                Statistics
+              </NavLink>
+
               <NavLink to="/editor" onClick={(e) => setPageState(e.target.innerText)} className="sidebar-link">
                 <span className="fi fi-rr-file-edit icon"></span>
                 Create Post
