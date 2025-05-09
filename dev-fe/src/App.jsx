@@ -21,6 +21,7 @@ import BlockedPage from "./pages/blocked.page";
 import UserStatisticsPage from "./control-panel/pages/user-statistics.page";
 import PostStatisticsPage from "./control-panel/pages/post-statistics.page";
 import PostsManagementPage from "./control-panel/pages/manage-posts.adm.page";
+import DashboardPage from "./pages/dashboard.page";
 
 export const UserContext = createContext({});
 
@@ -67,6 +68,7 @@ const App = () => {
                             <Route path="dashboard" element={<SideNavbar />}>
                                 <Route path="posts" element={<ManagePostsPage />} />
                                 <Route path="notifications" element={<NotificationsPage />} />
+                                <Route path="charts" element={<DashboardPage />} />
                             </Route>
                             <Route path="settings" element={<SideNavbar />}>
                                 <Route path="edit-profile" element={<EditProfilePage />} />

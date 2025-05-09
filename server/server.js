@@ -947,6 +947,43 @@ server.post("/delete-post", verifyJWT, (req, res) => {
     })
 })
 
+server.post("/get-user-statistics", verifyJWT, async (req, res) => {
+  const { days } = req.body;
+  const user_id = req.user;
+
+  const now = new Date();
+  const fromDate = new Date(now);
+  fromDate.setDate(now.getDate() - days);
+
+  try {
+    const recentPosts = await Post.find({
+      author: user_id,
+      publishedAt: { $gte: fromDate, $lte: now }
+    }).select("publishedAt");
+
+    const allPosts = await Post.find({ author: user_id });
+
+    const totalStats = {
+      total_posts: allPosts.length,
+      total_comments: allPosts.reduce((sum, post) => sum + (post.activity?.total_comments || 0), 0),
+      total_likes: allPosts.reduce((sum, post) => sum + (post.activity?.total_likes || 0), 0),
+      total_reads: allPosts.reduce((sum, post) => sum + (post.activity?.total_reads || 0), 0)
+    };
+
+    const commentDates = await Comment.find({
+      post_id: { $in: allPosts.map(post => post._id) },
+      commentedAt: { $gte: fromDate, $lte: now }
+    }).select("commentedAt");
+
+    return res.status(200).json({ recentPosts, totalStats, commentDates });
+
+  } catch (err) {
+    console.error("Error:", err.message);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 
 /*
 
